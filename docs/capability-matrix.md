@@ -20,7 +20,7 @@ following upstream revisions:
 | OpenAI Files | `/v1/files` | binary download | per request | `openai.Files` |
 | OpenAI Batches | `/v1/batches` | none | per request | `openai.Batches` |
 | OpenAI Audio | `/v1/audio/*` | binary speech | per request | `openai.Audio` |
-| OpenAI Images | `/v1/images/*` | none | per request | `openai.Images` |
+| OpenAI Images | `/v1/images/*` | SSE for generation and edit | per request | `openai.Images` |
 | OpenAI Moderations | `/v1/moderations` | none | per request | `openai.Moderations` |
 | OpenAI stateful resources | assistants, threads, runs, vector stores, containers, evals | endpoint-dependent | per request | `openai.Stateful` |
 | OpenAI organization | `/v1/organization/*` | none | per request | `openai.Organization` |
@@ -33,7 +33,7 @@ The root clients expose provider-native types. A capability matrix is a local
 configuration snapshot; it does not silently emulate or fall back to another
 endpoint when a provider does not support an operation.
 
-The current implementation tracks the listed core endpoints and records the
-remaining full-snapshot audit in `PLAN.md`. Endpoints added after the pinned
-revisions require a deliberate revision update and a matrix review before being
-exposed.
+The implementation covers the listed core endpoints. `PLAN.md` identifies the
+domains that still require a complete operation-by-operation audit against the
+pinned OpenAI snapshot. Endpoints added after the pinned revisions require a
+deliberate revision update and a matrix review before being exposed.

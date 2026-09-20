@@ -45,3 +45,8 @@ func (client *Client) List(ctx context.Context) (ListResponse, error) {
 func (client *Client) Delete(ctx context.Context, id string) (DeleteResponse, error) {
 	return client.stateful.DeleteAssistant(ctx, id)
 }
+
+// Update updates an assistant.
+func (client *Client) Update(ctx context.Context, id string, input Request) (Resource, error) {
+	return client.stateful.UpdateAssistant(ctx, id, input)
+}

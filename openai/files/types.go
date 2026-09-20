@@ -4,25 +4,38 @@ package files
 
 // File describes an uploaded file.
 type File struct {
-	ID        string `json:"id"`
-	Object    string `json:"object"`
-	Bytes     int64  `json:"bytes"`
-	CreatedAt int64  `json:"created_at"`
-	Filename  string `json:"filename"`
-	Purpose   string `json:"purpose"`
-	Status    string `json:"status,omitempty"`
+	// ID identifies the file.
+	ID string `json:"id"`
+	// Object identifies the provider object kind.
+	Object string `json:"object"`
+	// Bytes is the uploaded file size.
+	Bytes int64 `json:"bytes"`
+	// CreatedAt is the Unix upload time.
+	CreatedAt int64 `json:"created_at"`
+	// Filename is the original file name.
+	Filename string `json:"filename"`
+	// Purpose records the API feature that may use the file.
+	Purpose string `json:"purpose"`
+	// Status reports provider-side processing state.
+	Status string `json:"status,omitempty"`
 }
 
 // ListResponse lists files.
 type ListResponse struct {
-	Object  string `json:"object"`
-	Data    []File `json:"data"`
-	HasMore bool   `json:"has_more"`
+	// Object identifies the provider list kind.
+	Object string `json:"object"`
+	// Data contains the returned files.
+	Data []File `json:"data"`
+	// HasMore reports whether another page exists.
+	HasMore bool `json:"has_more"`
 }
 
 // DeleteResponse confirms deletion.
 type DeleteResponse struct {
-	ID      string `json:"id"`
-	Object  string `json:"object"`
-	Deleted bool   `json:"deleted"`
+	// ID identifies the deleted file.
+	ID string `json:"id"`
+	// Object identifies the provider object kind.
+	Object string `json:"object"`
+	// Deleted confirms that deletion succeeded.
+	Deleted bool `json:"deleted"`
 }

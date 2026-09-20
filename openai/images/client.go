@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"go.osspkg.com/llm-client/openai/internal/request"
+	"go.osspkg.com/llm-client/pkg/stream"
 	"go.osspkg.com/llm-client/pkg/transport"
 )
 
@@ -26,6 +27,16 @@ func (client *Client) Generate(ctx context.Context, input Request) (Response, er
 	return output, err
 }
 
+// GenerateStream creates images and returns their typed SSE events.
+func (client *Client) GenerateStream(ctx context.Context, input Request) (stream.Iterator[StreamEvent], error) {
+	input.Stream = true
+	body, err := request.Stream(ctx, client.transport, request.Post, "/images/generations", "images.generate_stream", input, "text/event-stream")
+	if err != nil {
+		return nil, err
+	}
+	return stream.NewSSE(body, request.Decode[StreamEvent], 0), nil
+}
+
 // Edit edits an image using the provider's multipart request shape.
 func (client *Client) Edit(ctx context.Context, input EditInput) (Response, error) {
 	var output Response
@@ -38,6 +49,20 @@ func (client *Client) Edit(ctx context.Context, input EditInput) (Response, erro
 		return output, err
 	}
 	return request.Decode[Response](data)
+}
+
+// EditStream edits images and returns their typed SSE events.
+func (client *Client) EditStream(ctx context.Context, input EditInput) (stream.Iterator[StreamEvent], error) {
+	input.Stream = true
+	body, contentType, err := editBody(input)
+	if err != nil {
+		return nil, err
+	}
+	streamBody, err := request.StreamReader(ctx, client.transport, request.Post, "/images/edits", "images.edit_stream", body, contentType, "text/event-stream")
+	if err != nil {
+		return nil, err
+	}
+	return stream.NewSSE(streamBody, request.Decode[StreamEvent], 0), nil
 }
 
 // Variation creates a variation of an image.
@@ -73,7 +98,12 @@ func editBody(input EditInput) (io.ReadCloser, string, error) {
 			}
 		}
 		if input.Size != "" {
-			return writer.WriteField("size", input.Size)
+			if err := writer.WriteField("size", input.Size); err != nil {
+				return err
+			}
+		}
+		if input.Stream {
+			return writer.WriteField("stream", "true")
 		}
 		return nil
 	}, "image", "mask")

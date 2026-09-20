@@ -208,7 +208,7 @@ func (client *Client) Request(ctx context.Context, method, endpoint, operation s
 		attempts = 1
 	}
 	for attempt := 1; attempt <= attempts; attempt++ {
-		response, err := client.do(requestContext, method, endpoint, operation, bytes.NewReader(body), contentType, false) //nolint:bodyclose // readResponse owns and closes the body.
+		response, err := client.do(requestContext, method, endpoint, operation, bytes.NewReader(body), contentType, "") //nolint:bodyclose // readResponse owns and closes the body.
 		if err != nil {
 			return nil, err
 		}
@@ -246,7 +246,7 @@ func (client *Client) RequestReader(ctx context.Context, method, endpoint, opera
 	}
 	requestContext, cancel := client.withTimeout(ctx, false)
 	defer cancel()
-	response, err := client.do(requestContext, method, endpoint, operation, body, contentType, false) //nolint:bodyclose // readResponse owns and closes the response.
+	response, err := client.do(requestContext, method, endpoint, operation, body, contentType, "") //nolint:bodyclose // readResponse owns and closes the response.
 	if err != nil {
 		return nil, err
 	}
@@ -262,6 +262,16 @@ func (client *Client) RequestReader(ctx context.Context, method, endpoint, opera
 
 // Stream opens a response body for a streaming request. The caller owns and must close it.
 func (client *Client) Stream(ctx context.Context, method, endpoint, operation string, body []byte, contentType, accept string) (io.ReadCloser, error) { //nolint:revive // positional arguments mirror the low-level streaming contract.
+	return client.streamReader(ctx, method, endpoint, operation, bytes.NewReader(body), contentType, accept)
+}
+
+// StreamReader opens a streaming response for a one-shot reader request body.
+// The reader is consumed at most once and the caller owns the returned body.
+func (client *Client) StreamReader(ctx context.Context, method, endpoint, operation string, body io.Reader, contentType, accept string) (io.ReadCloser, error) { //nolint:revive // positional arguments mirror the low-level streaming contract.
+	return client.streamReader(ctx, method, endpoint, operation, body, contentType, accept)
+}
+
+func (client *Client) streamReader(ctx context.Context, method, endpoint, operation string, body io.Reader, contentType, accept string) (io.ReadCloser, error) { //nolint:revive // internal helper keeps low-level transport metadata together.
 	if ctx == nil {
 		return nil, llmerrors.ErrInvalidRequest
 	}
@@ -274,7 +284,7 @@ func (client *Client) Stream(ctx context.Context, method, endpoint, operation st
 		}
 	}
 	requestContext, cancel := client.withTimeout(ctx, true)
-	response, err := client.do(requestContext, method, endpoint, operation, bytes.NewReader(body), contentType, true) //nolint:bodyclose // the returned stream owns the body.
+	response, err := client.do(requestContext, method, endpoint, operation, body, contentType, accept) //nolint:bodyclose // the returned stream owns the body.
 	if err != nil {
 		cancel()
 		return nil, err
@@ -321,7 +331,12 @@ func (client *Client) WebSocketHeaders(ctx context.Context, operation string) (h
 	if client.auth == nil {
 		return headers, nil
 	}
-	authHeaders, err := client.auth(ctx, auth.RequestMeta{Method: http.MethodGet, Operation: operation, WebSocket: true})
+	authHeaders, err := client.auth(ctx, auth.RequestMeta{
+		Method:    http.MethodGet,
+		Domain:    client.baseURL.Hostname(),
+		Operation: operation,
+		WebSocket: true,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("authenticate %s: %w", operation, err)
 	}
@@ -333,7 +348,7 @@ func (client *Client) WebSocketHeaders(ctx context.Context, operation string) (h
 	return headers, nil
 }
 
-func (client *Client) do(ctx context.Context, method, endpoint, operation string, body io.Reader, contentType string, streaming bool) (*http.Response, error) { //nolint:revive // internal transport contract keeps request metadata together.
+func (client *Client) do(ctx context.Context, method, endpoint, operation string, body io.Reader, contentType, accept string) (*http.Response, error) { //nolint:revive // internal transport contract keeps request metadata together.
 	target, err := client.resolve(endpoint)
 	if err != nil {
 		return nil, err
@@ -350,12 +365,16 @@ func (client *Client) do(ctx context.Context, method, endpoint, operation string
 	if contentType != "" {
 		request.Header.Set("Content-Type", contentType)
 	}
-	if streaming {
-		request.Header.Set("Accept", "text/event-stream, application/x-ndjson")
+	if accept != "" {
+		request.Header.Set("Accept", accept)
 	}
 	if client.auth != nil {
 		headers, authErr := client.auth(ctx, auth.RequestMeta{
-			Method: method, URL: target.String(), Operation: operation, Streaming: streaming,
+			Method:    method,
+			URL:       target.String(),
+			Domain:    target.Hostname(),
+			Operation: operation,
+			Streaming: accept != "",
 		})
 		if authErr != nil {
 			_ = request.Body.Close()

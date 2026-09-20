@@ -29,3 +29,12 @@ type Error struct {
 	Code    string `json:"code,omitempty"`
 	Message string `json:"message,omitempty"`
 }
+
+// ListResponse is a cursor page of batches.
+type ListResponse struct {
+	Object  string  `json:"object"`
+	Data    []Batch `json:"data"`
+	FirstID string  `json:"first_id,omitempty"`
+	LastID  string  `json:"last_id,omitempty"`
+	HasMore bool    `json:"has_more"`
+}

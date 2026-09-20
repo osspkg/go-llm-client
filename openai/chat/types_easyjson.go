@@ -105,7 +105,102 @@ func (v *Usage) UnmarshalJSON(data []byte) error {
 func (v *Usage) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat(l, v)
 }
-func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat1(in *jlexer.Lexer, out *ToolCall) {
+func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat1(in *jlexer.Lexer, out *UpdateRequest) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		switch key {
+		case "metadata":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				in.Delim('{')
+				out.Metadata = make(map[string]string)
+				for !in.IsDelim('}') {
+					key := string(in.String())
+					in.WantColon()
+					var v1 string
+					if in.IsNull() {
+						in.Skip()
+					} else {
+						v1 = string(in.String())
+					}
+					(out.Metadata)[key] = v1
+					in.WantComma()
+				}
+				in.Delim('}')
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat1(out *jwriter.Writer, in UpdateRequest) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"metadata\":"
+		out.RawString(prefix[1:])
+		if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
+			out.RawString(`null`)
+		} else {
+			out.RawByte('{')
+			v2First := true
+			for v2Name, v2Value := range in.Metadata {
+				if v2First {
+					v2First = false
+				} else {
+					out.RawByte(',')
+				}
+				out.String(string(v2Name))
+				out.RawByte(':')
+				out.String(string(v2Value))
+			}
+			out.RawByte('}')
+		}
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v UpdateRequest) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat1(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v UpdateRequest) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat1(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *UpdateRequest) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat1(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *UpdateRequest) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat1(l, v)
+}
+func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat2(in *jlexer.Lexer, out *ToolCall) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -153,7 +248,7 @@ func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat1(in *jlexer.Lexer, out
 		in.Consumed()
 	}
 }
-func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat1(out *jwriter.Writer, in ToolCall) {
+func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat2(out *jwriter.Writer, in ToolCall) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -183,27 +278,27 @@ func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat1(out *jwriter.Writer, 
 // MarshalJSON supports json.Marshaler interface
 func (v ToolCall) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat1(&w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat2(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v ToolCall) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat1(w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat2(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *ToolCall) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat1(&r, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat2(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *ToolCall) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat1(l, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat2(l, v)
 }
-func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat2(in *jlexer.Lexer, out *Tool) {
+func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat3(in *jlexer.Lexer, out *Tool) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -239,7 +334,7 @@ func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat2(in *jlexer.Lexer, out
 		in.Consumed()
 	}
 }
-func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat2(out *jwriter.Writer, in Tool) {
+func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat3(out *jwriter.Writer, in Tool) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -259,27 +354,27 @@ func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat2(out *jwriter.Writer, 
 // MarshalJSON supports json.Marshaler interface
 func (v Tool) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat2(&w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat3(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Tool) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat2(w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat3(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Tool) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat2(&r, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat3(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Tool) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat2(l, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat3(l, v)
 }
-func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat3(in *jlexer.Lexer, out *StreamChunk) {
+func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat4(in *jlexer.Lexer, out *StreamChunk) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -333,13 +428,13 @@ func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat3(in *jlexer.Lexer, out
 					out.Choices = (out.Choices)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v1 Choice
+					var v3 Choice
 					if in.IsNull() {
 						in.Skip()
 					} else {
-						(v1).UnmarshalEasyJSON(in)
+						(v3).UnmarshalEasyJSON(in)
 					}
-					out.Choices = append(out.Choices, v1)
+					out.Choices = append(out.Choices, v3)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -368,7 +463,7 @@ func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat3(in *jlexer.Lexer, out
 		in.Consumed()
 	}
 }
-func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat3(out *jwriter.Writer, in StreamChunk) {
+func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat4(out *jwriter.Writer, in StreamChunk) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -399,11 +494,11 @@ func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat3(out *jwriter.Writer, 
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v2, v3 := range in.Choices {
-				if v2 > 0 {
+			for v4, v5 := range in.Choices {
+				if v4 > 0 {
 					out.RawByte(',')
 				}
-				(v3).MarshalEasyJSON(out)
+				(v5).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -419,27 +514,27 @@ func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat3(out *jwriter.Writer, 
 // MarshalJSON supports json.Marshaler interface
 func (v StreamChunk) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat3(&w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat4(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v StreamChunk) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat3(w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat4(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *StreamChunk) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat3(&r, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat4(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *StreamChunk) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat3(l, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat4(l, v)
 }
-func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat4(in *jlexer.Lexer, out *Response) {
+func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat5(in *jlexer.Lexer, out *Response) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -493,13 +588,13 @@ func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat4(in *jlexer.Lexer, out
 					out.Choices = (out.Choices)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v4 Choice
+					var v6 Choice
 					if in.IsNull() {
 						in.Skip()
 					} else {
-						(v4).UnmarshalEasyJSON(in)
+						(v6).UnmarshalEasyJSON(in)
 					}
-					out.Choices = append(out.Choices, v4)
+					out.Choices = append(out.Choices, v6)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -534,7 +629,7 @@ func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat4(in *jlexer.Lexer, out
 		in.Consumed()
 	}
 }
-func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat4(out *jwriter.Writer, in Response) {
+func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat5(out *jwriter.Writer, in Response) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -565,11 +660,11 @@ func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat4(out *jwriter.Writer, 
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v5, v6 := range in.Choices {
-				if v5 > 0 {
+			for v7, v8 := range in.Choices {
+				if v7 > 0 {
 					out.RawByte(',')
 				}
-				(v6).MarshalEasyJSON(out)
+				(v8).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -590,27 +685,27 @@ func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat4(out *jwriter.Writer, 
 // MarshalJSON supports json.Marshaler interface
 func (v Response) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat4(&w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat5(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Response) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat4(w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat5(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Response) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat4(&r, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat5(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Response) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat4(l, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat5(l, v)
 }
-func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat5(in *jlexer.Lexer, out *Request) {
+func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat6(in *jlexer.Lexer, out *Request) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -646,13 +741,13 @@ func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat5(in *jlexer.Lexer, out
 					out.Messages = (out.Messages)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v7 Message
+					var v9 Message
 					if in.IsNull() {
 						in.Skip()
 					} else {
-						(v7).UnmarshalEasyJSON(in)
+						(v9).UnmarshalEasyJSON(in)
 					}
-					out.Messages = append(out.Messages, v7)
+					out.Messages = append(out.Messages, v9)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -697,13 +792,13 @@ func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat5(in *jlexer.Lexer, out
 					out.Tools = (out.Tools)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v8 Tool
+					var v10 Tool
 					if in.IsNull() {
 						in.Skip()
 					} else {
-						(v8).UnmarshalEasyJSON(in)
+						(v10).UnmarshalEasyJSON(in)
 					}
-					out.Tools = append(out.Tools, v8)
+					out.Tools = append(out.Tools, v10)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -737,13 +832,13 @@ func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat5(in *jlexer.Lexer, out
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
-					var v9 string
+					var v11 string
 					if in.IsNull() {
 						in.Skip()
 					} else {
-						v9 = string(in.String())
+						v11 = string(in.String())
 					}
-					(out.Metadata)[key] = v9
+					(out.Metadata)[key] = v11
 					in.WantComma()
 				}
 				in.Delim('}')
@@ -758,7 +853,7 @@ func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat5(in *jlexer.Lexer, out
 		in.Consumed()
 	}
 }
-func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat5(out *jwriter.Writer, in Request) {
+func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat6(out *jwriter.Writer, in Request) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -774,11 +869,11 @@ func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat5(out *jwriter.Writer, 
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v10, v11 := range in.Messages {
-				if v10 > 0 {
+			for v12, v13 := range in.Messages {
+				if v12 > 0 {
 					out.RawByte(',')
 				}
-				(v11).MarshalEasyJSON(out)
+				(v13).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -808,11 +903,11 @@ func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat5(out *jwriter.Writer, 
 		out.RawString(prefix)
 		{
 			out.RawByte('[')
-			for v12, v13 := range in.Tools {
-				if v12 > 0 {
+			for v14, v15 := range in.Tools {
+				if v14 > 0 {
 					out.RawByte(',')
 				}
-				(v13).MarshalEasyJSON(out)
+				(v15).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -832,16 +927,16 @@ func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat5(out *jwriter.Writer, 
 		out.RawString(prefix)
 		{
 			out.RawByte('{')
-			v14First := true
-			for v14Name, v14Value := range in.Metadata {
-				if v14First {
-					v14First = false
+			v16First := true
+			for v16Name, v16Value := range in.Metadata {
+				if v16First {
+					v16First = false
 				} else {
 					out.RawByte(',')
 				}
-				out.String(string(v14Name))
+				out.String(string(v16Name))
 				out.RawByte(':')
-				out.String(string(v14Value))
+				out.String(string(v16Value))
 			}
 			out.RawByte('}')
 		}
@@ -852,27 +947,168 @@ func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat5(out *jwriter.Writer, 
 // MarshalJSON supports json.Marshaler interface
 func (v Request) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat5(&w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat6(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Request) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat5(w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat6(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Request) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat5(&r, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat6(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Request) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat5(l, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat6(l, v)
 }
-func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat6(in *jlexer.Lexer, out *Message) {
+func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat7(in *jlexer.Lexer, out *MessagesResponse) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		switch key {
+		case "object":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Object = string(in.String())
+			}
+		case "data":
+			if in.IsNull() {
+				in.Skip()
+				out.Data = nil
+			} else {
+				in.Delim('[')
+				if out.Data == nil {
+					if !in.IsDelim(']') {
+						out.Data = make([]Message, 0, 0)
+					} else {
+						out.Data = []Message{}
+					}
+				} else {
+					out.Data = (out.Data)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v17 Message
+					if in.IsNull() {
+						in.Skip()
+					} else {
+						(v17).UnmarshalEasyJSON(in)
+					}
+					out.Data = append(out.Data, v17)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		case "first_id":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.FirstID = string(in.String())
+			}
+		case "last_id":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.LastID = string(in.String())
+			}
+		case "has_more":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.HasMore = bool(in.Bool())
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat7(out *jwriter.Writer, in MessagesResponse) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"object\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.Object))
+	}
+	{
+		const prefix string = ",\"data\":"
+		out.RawString(prefix)
+		if in.Data == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v18, v19 := range in.Data {
+				if v18 > 0 {
+					out.RawByte(',')
+				}
+				(v19).MarshalEasyJSON(out)
+			}
+			out.RawByte(']')
+		}
+	}
+	if in.FirstID != "" {
+		const prefix string = ",\"first_id\":"
+		out.RawString(prefix)
+		out.String(string(in.FirstID))
+	}
+	if in.LastID != "" {
+		const prefix string = ",\"last_id\":"
+		out.RawString(prefix)
+		out.String(string(in.LastID))
+	}
+	{
+		const prefix string = ",\"has_more\":"
+		out.RawString(prefix)
+		out.Bool(bool(in.HasMore))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v MessagesResponse) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat7(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v MessagesResponse) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat7(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *MessagesResponse) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat7(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *MessagesResponse) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat7(l, v)
+}
+func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat8(in *jlexer.Lexer, out *Message) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -922,13 +1158,13 @@ func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat6(in *jlexer.Lexer, out
 					out.ToolCalls = (out.ToolCalls)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v15 ToolCall
+					var v20 ToolCall
 					if in.IsNull() {
 						in.Skip()
 					} else {
-						(v15).UnmarshalEasyJSON(in)
+						(v20).UnmarshalEasyJSON(in)
 					}
-					out.ToolCalls = append(out.ToolCalls, v15)
+					out.ToolCalls = append(out.ToolCalls, v20)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -949,7 +1185,7 @@ func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat6(in *jlexer.Lexer, out
 		in.Consumed()
 	}
 }
-func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat6(out *jwriter.Writer, in Message) {
+func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat8(out *jwriter.Writer, in Message) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -973,11 +1209,11 @@ func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat6(out *jwriter.Writer, 
 		out.RawString(prefix)
 		{
 			out.RawByte('[')
-			for v16, v17 := range in.ToolCalls {
-				if v16 > 0 {
+			for v21, v22 := range in.ToolCalls {
+				if v21 > 0 {
 					out.RawByte(',')
 				}
-				(v17).MarshalEasyJSON(out)
+				(v22).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -993,27 +1229,168 @@ func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat6(out *jwriter.Writer, 
 // MarshalJSON supports json.Marshaler interface
 func (v Message) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat6(&w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat8(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Message) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat6(w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat8(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Message) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat6(&r, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat8(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Message) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat6(l, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat8(l, v)
 }
-func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat7(in *jlexer.Lexer, out *FunctionTool) {
+func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat9(in *jlexer.Lexer, out *ListResponse) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		switch key {
+		case "object":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Object = string(in.String())
+			}
+		case "data":
+			if in.IsNull() {
+				in.Skip()
+				out.Data = nil
+			} else {
+				in.Delim('[')
+				if out.Data == nil {
+					if !in.IsDelim(']') {
+						out.Data = make([]Response, 0, 0)
+					} else {
+						out.Data = []Response{}
+					}
+				} else {
+					out.Data = (out.Data)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v23 Response
+					if in.IsNull() {
+						in.Skip()
+					} else {
+						(v23).UnmarshalEasyJSON(in)
+					}
+					out.Data = append(out.Data, v23)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		case "first_id":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.FirstID = string(in.String())
+			}
+		case "last_id":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.LastID = string(in.String())
+			}
+		case "has_more":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.HasMore = bool(in.Bool())
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat9(out *jwriter.Writer, in ListResponse) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"object\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.Object))
+	}
+	{
+		const prefix string = ",\"data\":"
+		out.RawString(prefix)
+		if in.Data == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v24, v25 := range in.Data {
+				if v24 > 0 {
+					out.RawByte(',')
+				}
+				(v25).MarshalEasyJSON(out)
+			}
+			out.RawByte(']')
+		}
+	}
+	if in.FirstID != "" {
+		const prefix string = ",\"first_id\":"
+		out.RawString(prefix)
+		out.String(string(in.FirstID))
+	}
+	if in.LastID != "" {
+		const prefix string = ",\"last_id\":"
+		out.RawString(prefix)
+		out.String(string(in.LastID))
+	}
+	{
+		const prefix string = ",\"has_more\":"
+		out.RawString(prefix)
+		out.Bool(bool(in.HasMore))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v ListResponse) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat9(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v ListResponse) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat9(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *ListResponse) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat9(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *ListResponse) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat9(l, v)
+}
+func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat10(in *jlexer.Lexer, out *FunctionTool) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1057,7 +1434,7 @@ func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat7(in *jlexer.Lexer, out
 		in.Consumed()
 	}
 }
-func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat7(out *jwriter.Writer, in FunctionTool) {
+func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat10(out *jwriter.Writer, in FunctionTool) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1082,27 +1459,27 @@ func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat7(out *jwriter.Writer, 
 // MarshalJSON supports json.Marshaler interface
 func (v FunctionTool) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat7(&w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat10(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v FunctionTool) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat7(w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat10(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *FunctionTool) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat7(&r, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat10(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *FunctionTool) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat7(l, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat10(l, v)
 }
-func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat8(in *jlexer.Lexer, out *FunctionCall) {
+func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat11(in *jlexer.Lexer, out *FunctionCall) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1138,7 +1515,7 @@ func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat8(in *jlexer.Lexer, out
 		in.Consumed()
 	}
 }
-func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat8(out *jwriter.Writer, in FunctionCall) {
+func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat11(out *jwriter.Writer, in FunctionCall) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1164,27 +1541,114 @@ func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat8(out *jwriter.Writer, 
 // MarshalJSON supports json.Marshaler interface
 func (v FunctionCall) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat8(&w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat11(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v FunctionCall) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat8(w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat11(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *FunctionCall) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat8(&r, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat11(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *FunctionCall) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat8(l, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat11(l, v)
 }
-func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat9(in *jlexer.Lexer, out *Choice) {
+func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat12(in *jlexer.Lexer, out *DeleteResponse) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		switch key {
+		case "id":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.ID = string(in.String())
+			}
+		case "object":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Object = string(in.String())
+			}
+		case "deleted":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Deleted = bool(in.Bool())
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat12(out *jwriter.Writer, in DeleteResponse) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"id\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.ID))
+	}
+	{
+		const prefix string = ",\"object\":"
+		out.RawString(prefix)
+		out.String(string(in.Object))
+	}
+	{
+		const prefix string = ",\"deleted\":"
+		out.RawString(prefix)
+		out.Bool(bool(in.Deleted))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v DeleteResponse) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat12(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v DeleteResponse) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat12(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *DeleteResponse) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat12(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *DeleteResponse) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat12(l, v)
+}
+func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat13(in *jlexer.Lexer, out *Choice) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1232,7 +1696,7 @@ func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat9(in *jlexer.Lexer, out
 		in.Consumed()
 	}
 }
-func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat9(out *jwriter.Writer, in Choice) {
+func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat13(out *jwriter.Writer, in Choice) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1262,23 +1726,23 @@ func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat9(out *jwriter.Writer, 
 // MarshalJSON supports json.Marshaler interface
 func (v Choice) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat9(&w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat13(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Choice) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat9(w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiChat13(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Choice) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat9(&r, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat13(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Choice) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat9(l, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiChat13(l, v)
 }

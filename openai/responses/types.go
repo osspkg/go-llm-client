@@ -82,3 +82,28 @@ type StreamEvent struct {
 	Text           string    `json:"text,omitempty"`
 	Response       *Response `json:"response,omitempty"`
 }
+
+// DeleteResponse confirms deletion of a stored response.
+type DeleteResponse struct {
+	ID      string `json:"id"`
+	Object  string `json:"object"`
+	Deleted bool   `json:"deleted"`
+}
+
+// InputItem is an input item returned by the Responses API.
+type InputItem struct {
+	ID      string          `json:"id,omitempty"`
+	Type    string          `json:"type"`
+	Role    string          `json:"role,omitempty"`
+	Status  string          `json:"status,omitempty"`
+	Content json.RawMessage `json:"content,omitempty"`
+}
+
+// InputItemsResponse is a cursor page of response input items.
+type InputItemsResponse struct {
+	Object  string      `json:"object"`
+	Data    []InputItem `json:"data"`
+	FirstID string      `json:"first_id,omitempty"`
+	LastID  string      `json:"last_id,omitempty"`
+	HasMore bool        `json:"has_more"`
+}

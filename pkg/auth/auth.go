@@ -8,8 +8,11 @@ import (
 
 // RequestMeta describes the operation for which headers are requested.
 type RequestMeta struct {
-	Method    string
-	URL       string
+	Method string
+	URL    string
+	// Domain is the destination hostname. It never includes credentials, paths,
+	// query parameters, or a port.
+	Domain    string
 	Operation string
 	Streaming bool
 	WebSocket bool

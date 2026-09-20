@@ -23,6 +23,13 @@ func (client *Client) Create(ctx context.Context, input Request) (Batch, error) 
 	return output, err
 }
 
+// List returns batches visible to the current project.
+func (client *Client) List(ctx context.Context) (ListResponse, error) {
+	var output ListResponse
+	err := request.JSON(ctx, client.transport, request.Get, "/batches", "batches.list", nil, &output)
+	return output, err
+}
+
 // Get returns a batch.
 func (client *Client) Get(ctx context.Context, id string) (Batch, error) {
 	var output Batch

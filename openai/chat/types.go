@@ -18,6 +18,11 @@ type Request struct {
 	Metadata       map[string]string `json:"metadata,omitempty"`
 }
 
+// UpdateRequest changes metadata associated with a stored chat completion.
+type UpdateRequest struct {
+	Metadata map[string]string `json:"metadata"`
+}
+
 // Message is a chat message.
 type Message struct {
 	Role       string          `json:"role"`
@@ -88,4 +93,29 @@ type StreamChunk struct {
 	Model   string   `json:"model"`
 	Choices []Choice `json:"choices"`
 	Usage   *Usage   `json:"usage,omitempty"`
+}
+
+// ListResponse lists stored chat completions.
+type ListResponse struct {
+	Object  string     `json:"object"`
+	Data    []Response `json:"data"`
+	FirstID string     `json:"first_id,omitempty"`
+	LastID  string     `json:"last_id,omitempty"`
+	HasMore bool       `json:"has_more"`
+}
+
+// DeleteResponse confirms deletion of a stored chat completion.
+type DeleteResponse struct {
+	ID      string `json:"id"`
+	Object  string `json:"object"`
+	Deleted bool   `json:"deleted"`
+}
+
+// MessagesResponse lists the messages associated with a stored completion.
+type MessagesResponse struct {
+	Object  string    `json:"object"`
+	Data    []Message `json:"data"`
+	FirstID string    `json:"first_id,omitempty"`
+	LastID  string    `json:"last_id,omitempty"`
+	HasMore bool      `json:"has_more"`
 }

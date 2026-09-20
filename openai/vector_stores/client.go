@@ -32,3 +32,18 @@ func (client *Client) Create(ctx context.Context, input Request) (Resource, erro
 func (client *Client) List(ctx context.Context) (ListResponse, error) {
 	return client.stateful.ListVectorStores(ctx)
 }
+
+// Get returns a vector store.
+func (client *Client) Get(ctx context.Context, id string) (Resource, error) {
+	return client.stateful.GetVectorStore(ctx, id)
+}
+
+// Update updates a vector store.
+func (client *Client) Update(ctx context.Context, id string, input Request) (Resource, error) {
+	return client.stateful.UpdateVectorStore(ctx, id, input)
+}
+
+// Delete deletes a vector store.
+func (client *Client) Delete(ctx context.Context, id string) (stateful.DeleteResponse, error) {
+	return client.stateful.DeleteVectorStore(ctx, id)
+}

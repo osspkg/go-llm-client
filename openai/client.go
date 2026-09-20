@@ -17,7 +17,7 @@ import (
 	"go.osspkg.com/llm-client/openai/embeddings"
 	"go.osspkg.com/llm-client/openai/evals"
 	"go.osspkg.com/llm-client/openai/files"
-	"go.osspkg.com/llm-client/openai/fine_tuning"
+	finetuning "go.osspkg.com/llm-client/openai/fine_tuning"
 	"go.osspkg.com/llm-client/openai/images"
 	"go.osspkg.com/llm-client/openai/models"
 	"go.osspkg.com/llm-client/openai/moderations"
@@ -60,7 +60,7 @@ type Client struct {
 	Files        *files.Client
 	Uploads      *uploads.Client
 	Batches      *batches.Client
-	FineTuning   *fine_tuning.Client
+	FineTuning   *finetuning.Client
 	Audio        *audio.Client
 	Images       *images.Client
 	Moderations  *moderations.Client
@@ -100,7 +100,7 @@ func New(options ...Option) (*Client, error) {
 		Assistants: assistants.New(client), Threads: threads.New(client), Runs: runs.New(client),
 		VectorStores: vector_stores.New(client), Containers: containers.New(client), Evals: evals.New(client),
 		Embeddings: embeddings.New(client), Models: models.New(client), Files: files.New(client),
-		Uploads: uploads.New(client), Batches: batches.New(client), FineTuning: fine_tuning.New(client),
+		Uploads: uploads.New(client), Batches: batches.New(client), FineTuning: finetuning.New(client),
 		Audio: audio.New(client), Images: images.New(client),
 		Moderations: moderations.New(client), Stateful: stateful.New(client),
 		Organization: organization.New(client), Realtime: realtime.New(client),

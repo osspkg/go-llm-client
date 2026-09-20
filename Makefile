@@ -27,7 +27,7 @@ build:
 
 .PHONY: tests
 tests:
-	goppy test
+	go test ./...
 
 .PHONY: verify
 verify: generate lint tests
@@ -40,4 +40,8 @@ verify: generate lint tests
 pre-commit: install license generate lint tests build
 
 .PHONY: ci
-ci: pre-commit
+ci: verify build
+
+.PHONY: vulncheck
+vulncheck:
+	govulncheck ./...

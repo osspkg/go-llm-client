@@ -1005,7 +1005,265 @@ func (v *OutputContent) UnmarshalJSON(data []byte) error {
 func (v *OutputContent) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses6(l, v)
 }
-func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses7(in *jlexer.Lexer, out *Error) {
+func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses7(in *jlexer.Lexer, out *InputItemsResponse) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		switch key {
+		case "object":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Object = string(in.String())
+			}
+		case "data":
+			if in.IsNull() {
+				in.Skip()
+				out.Data = nil
+			} else {
+				in.Delim('[')
+				if out.Data == nil {
+					if !in.IsDelim(']') {
+						out.Data = make([]InputItem, 0, 0)
+					} else {
+						out.Data = []InputItem{}
+					}
+				} else {
+					out.Data = (out.Data)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v15 InputItem
+					if in.IsNull() {
+						in.Skip()
+					} else {
+						(v15).UnmarshalEasyJSON(in)
+					}
+					out.Data = append(out.Data, v15)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		case "first_id":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.FirstID = string(in.String())
+			}
+		case "last_id":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.LastID = string(in.String())
+			}
+		case "has_more":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.HasMore = bool(in.Bool())
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses7(out *jwriter.Writer, in InputItemsResponse) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"object\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.Object))
+	}
+	{
+		const prefix string = ",\"data\":"
+		out.RawString(prefix)
+		if in.Data == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v16, v17 := range in.Data {
+				if v16 > 0 {
+					out.RawByte(',')
+				}
+				(v17).MarshalEasyJSON(out)
+			}
+			out.RawByte(']')
+		}
+	}
+	if in.FirstID != "" {
+		const prefix string = ",\"first_id\":"
+		out.RawString(prefix)
+		out.String(string(in.FirstID))
+	}
+	if in.LastID != "" {
+		const prefix string = ",\"last_id\":"
+		out.RawString(prefix)
+		out.String(string(in.LastID))
+	}
+	{
+		const prefix string = ",\"has_more\":"
+		out.RawString(prefix)
+		out.Bool(bool(in.HasMore))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v InputItemsResponse) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses7(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v InputItemsResponse) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses7(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *InputItemsResponse) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses7(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *InputItemsResponse) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses7(l, v)
+}
+func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses8(in *jlexer.Lexer, out *InputItem) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		switch key {
+		case "id":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.ID = string(in.String())
+			}
+		case "type":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Type = string(in.String())
+			}
+		case "role":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Role = string(in.String())
+			}
+		case "status":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Status = string(in.String())
+			}
+		case "content":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				if data := in.Raw(); in.Ok() {
+					in.AddError((out.Content).UnmarshalJSON(data))
+				}
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses8(out *jwriter.Writer, in InputItem) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	if in.ID != "" {
+		const prefix string = ",\"id\":"
+		first = false
+		out.RawString(prefix[1:])
+		out.String(string(in.ID))
+	}
+	{
+		const prefix string = ",\"type\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.Type))
+	}
+	if in.Role != "" {
+		const prefix string = ",\"role\":"
+		out.RawString(prefix)
+		out.String(string(in.Role))
+	}
+	if in.Status != "" {
+		const prefix string = ",\"status\":"
+		out.RawString(prefix)
+		out.String(string(in.Status))
+	}
+	if len(in.Content) != 0 {
+		const prefix string = ",\"content\":"
+		out.RawString(prefix)
+		out.Raw((in.Content).MarshalJSON())
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v InputItem) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses8(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v InputItem) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses8(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *InputItem) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses8(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *InputItem) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses8(l, v)
+}
+func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses9(in *jlexer.Lexer, out *Error) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1041,7 +1299,7 @@ func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses7(in *jlexer.Lexer
 		in.Consumed()
 	}
 }
-func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses7(out *jwriter.Writer, in Error) {
+func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses9(out *jwriter.Writer, in Error) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1067,27 +1325,114 @@ func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses7(out *jwriter.Wri
 // MarshalJSON supports json.Marshaler interface
 func (v Error) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses7(&w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses9(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Error) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses7(w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses9(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Error) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses7(&r, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses9(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Error) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses7(l, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses9(l, v)
 }
-func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses8(in *jlexer.Lexer, out *Annotation) {
+func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses10(in *jlexer.Lexer, out *DeleteResponse) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		switch key {
+		case "id":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.ID = string(in.String())
+			}
+		case "object":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Object = string(in.String())
+			}
+		case "deleted":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Deleted = bool(in.Bool())
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses10(out *jwriter.Writer, in DeleteResponse) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"id\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.ID))
+	}
+	{
+		const prefix string = ",\"object\":"
+		out.RawString(prefix)
+		out.String(string(in.Object))
+	}
+	{
+		const prefix string = ",\"deleted\":"
+		out.RawString(prefix)
+		out.Bool(bool(in.Deleted))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v DeleteResponse) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses10(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v DeleteResponse) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses10(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *DeleteResponse) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses10(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *DeleteResponse) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses10(l, v)
+}
+func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses11(in *jlexer.Lexer, out *Annotation) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1123,7 +1468,7 @@ func easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses8(in *jlexer.Lexer
 		in.Consumed()
 	}
 }
-func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses8(out *jwriter.Writer, in Annotation) {
+func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses11(out *jwriter.Writer, in Annotation) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1143,23 +1488,23 @@ func easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses8(out *jwriter.Wri
 // MarshalJSON supports json.Marshaler interface
 func (v Annotation) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses8(&w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses11(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Annotation) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses8(w, v)
+	easyjson6601e8cdEncodeGoOsspkgComLlmClientOpenaiResponses11(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Annotation) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses8(&r, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses11(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Annotation) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses8(l, v)
+	easyjson6601e8cdDecodeGoOsspkgComLlmClientOpenaiResponses11(l, v)
 }

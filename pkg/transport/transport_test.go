@@ -18,6 +18,7 @@ type roundTripFunc func(*http.Request) (*http.Response, error)
 func (fn roundTripFunc) RoundTrip(request *http.Request) (*http.Response, error) { return fn(request) }
 
 func TestRequestUsesBaseURLAndPerRequestAuth(t *testing.T) {
+	var metadata auth.RequestMeta
 	client, err := transport.New("https://example.test/v1",
 		transport.WithHTTPClient(&http.Client{Transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
 			if request.URL.String() != "https://example.test/v1/models" {
@@ -28,7 +29,10 @@ func TestRequestUsesBaseURLAndPerRequestAuth(t *testing.T) {
 			}
 			return &http.Response{StatusCode: http.StatusOK, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(`{"ok":true}`))}, nil
 		})}),
-		transport.WithAuthProvider(auth.StaticBearer("secret")),
+		transport.WithAuthProvider(func(ctx context.Context, value auth.RequestMeta) (http.Header, error) {
+			metadata = value
+			return auth.StaticBearer("secret")(ctx, value)
+		}),
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -39,6 +43,32 @@ func TestRequestUsesBaseURLAndPerRequestAuth(t *testing.T) {
 	}
 	if string(data) != `{"ok":true}` {
 		t.Fatalf("body = %s", data)
+	}
+	if metadata.Domain != "example.test" {
+		t.Errorf("auth domain = %q, want example.test", metadata.Domain)
+	}
+	if metadata.URL != "https://example.test/v1/models" {
+		t.Errorf("auth url = %q", metadata.URL)
+	}
+}
+
+func TestWebSocketHeadersIncludeDestinationDomain(t *testing.T) {
+	var metadata auth.RequestMeta
+	client, err := transport.New("https://realtime.example.test/v1", transport.WithAuthProvider(func(_ context.Context, value auth.RequestMeta) (http.Header, error) {
+		metadata = value
+		return make(http.Header), nil
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := client.WebSocketHeaders(t.Context(), "realtime.connect"); err != nil {
+		t.Fatal(err)
+	}
+	if metadata.Domain != "realtime.example.test" {
+		t.Errorf("auth domain = %q, want realtime.example.test", metadata.Domain)
+	}
+	if !metadata.WebSocket {
+		t.Error("websocket metadata flag is false")
 	}
 }
 
