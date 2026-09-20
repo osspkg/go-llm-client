@@ -199,6 +199,11 @@ linters:
   exclusions:
     paths:
       - vendors/
+    rules:
+      - linters:
+          - recvcheck
+        path: .*types\.go$
+        text: the methods of
   default: none
   enable:
     - govet

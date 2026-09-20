@@ -1,0 +1,84 @@
+// Package errors defines errors shared by provider clients.
+package errors
+
+import (
+	"errors"
+	"fmt"
+)
+
+var (
+	// ErrInvalidConfig indicates invalid client configuration.
+	ErrInvalidConfig = errors.New("llm client: invalid config")
+	// ErrInvalidRequest indicates invalid caller input.
+	ErrInvalidRequest = errors.New("llm client: invalid request")
+	// ErrBodyTooLarge indicates that a configured body limit was exceeded.
+	ErrBodyTooLarge = errors.New("llm client: response body too large")
+	// ErrProtocol indicates malformed provider protocol data.
+	ErrProtocol = errors.New("llm client: protocol error")
+	// ErrStreamClosed indicates that a stream was already closed.
+	ErrStreamClosed = errors.New("llm client: stream closed")
+)
+
+// HTTPError describes a non-successful HTTP response without retaining its body.
+type HTTPError struct {
+	StatusCode   int
+	RequestID    string
+	ProviderCode string
+	ProviderType string
+	Param        string
+	Message      string
+}
+
+// Error implements error.
+func (e *HTTPError) Error() string {
+	if e == nil {
+		return "llm client: http error"
+	}
+	if e.Message == "" {
+		return fmt.Sprintf("llm client: http status %d", e.StatusCode)
+	}
+	return fmt.Sprintf("llm client: http status %d: %s", e.StatusCode, e.Message)
+}
+
+// Unwrap exposes the shared invalid-request-independent HTTP error category.
+func (e *HTTPError) Unwrap() error { return ErrProtocol }
+
+// ValidationError identifies a field that failed request validation.
+type ValidationError struct {
+	Field string
+	Msg   string
+}
+
+// Error implements error.
+func (e *ValidationError) Error() string {
+	if e == nil {
+		return "llm client: invalid request"
+	}
+	if e.Field == "" {
+		return "llm client: invalid request: " + e.Msg
+	}
+	return "llm client: invalid request: " + e.Field + ": " + e.Msg
+}
+
+// Unwrap exposes ErrInvalidRequest for errors.Is.
+func (e *ValidationError) Unwrap() error { return ErrInvalidRequest }
+
+// DecodeError identifies a response that could not be decoded.
+type DecodeError struct {
+	Operation string
+	Cause     error
+}
+
+// Error implements error.
+func (e *DecodeError) Error() string {
+	if e == nil {
+		return "llm client: decode error"
+	}
+	if e.Operation == "" {
+		return fmt.Sprintf("llm client: decode response: %v", e.Cause)
+	}
+	return fmt.Sprintf("llm client: decode %s response: %v", e.Operation, e.Cause)
+}
+
+// Unwrap exposes the underlying decode failure.
+func (e *DecodeError) Unwrap() error { return e.Cause }

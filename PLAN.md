@@ -1,0 +1,49 @@
+# Implementation plan
+
+Status markers: `[ ]` pending, `[x]` complete, `[!]` blocked or needs review.
+
+## Decisions
+
+- OpenAI-compatible HTTP is the primary OpenAI provider contract.
+- The full pinned OpenAI public/admin REST surface and Realtime WebSocket are in scope.
+- Ollama HTTP follows its pinned OpenAPI schema and includes streaming/model management.
+- Provider-native typed APIs are primary; there is no mandatory normalized facade.
+- Runtime dependencies are stdlib, easyjson, and coder/websocket for Realtime only.
+- Unknown JSON fields are ignored; arbitrary JSON is retained only in spec-defined fields.
+- Streams use `Next/Value/Err/Close`; Realtime uses an explicit Session lifecycle.
+- Tests are deterministic mocks only; no live provider credentials are required.
+
+## Tasks
+
+- [x] 01. Create project rules and this implementation plan. **CP-01:** documentation exists.
+- [!] 02. Pin OpenAI/Ollama upstream revisions and capability matrix. **CP-02:** revisions and implemented domain families are documented; a full per-operation audit against the pinned OpenAI snapshot remains required.
+- [x] 03. Add and verify approved dependencies. **CP-03:** dependency graph is constrained.
+- [x] 04. Implement provider-independent auth, errors, transport, pagination, stream, codec, and WebSocket packages. **CP-04:** no provider imports under `pkg`.
+- [x] 05. Implement bounded HTTP transport, auth callback, retry policy, capability gate, and body limits. **CP-05:** transport tests pass.
+- [x] 06. Implement typed error/protocol model and cleanup paths. **CP-06:** errors are inspectable and bodies close.
+- [x] 07. Add easyjson model generation and committed generated output. **CP-07:** `go generate ./...` is reproducible.
+- [x] 08. Implement the OpenAI root client and capability matrix. **CP-08:** custom base URL/auth/capability gating works.
+- [!] 09. Implement OpenAI generation domains. **CP-09:** core generation endpoints and streams are typed; the complete snapshot operation audit remains required.
+- [x] 10. Implement OpenAI files, uploads, and batches. **CP-10:** multipart/binary/batch lifecycle APIs exist with bounded request bodies.
+- [!] 11. Implement OpenAI fine-tuning, assistants, threads, runs, vector stores, containers, and evals. **CP-11:** domain packages and core lifecycle methods exist; full pinned REST operation coverage remains required.
+- [!] 12. Implement OpenAI audio and image domains. **CP-12:** JSON and streaming multipart media paths exist; all snapshot variants still need audit.
+- [!] 13. Implement OpenAI organization/admin domains. **CP-13:** organization operations and per-operation auth metadata exist; the full admin surface remains required.
+- [!] 14. Implement OpenAI Realtime Session over coder/websocket. **CP-14:** explicit session and common lifecycle wrapper exist; local WebSocket contract test is pending because the sandbox blocks listeners.
+- [x] 15. Implement the Ollama root client and pinned core domains. **CP-15:** generation, embeddings, model lifecycle, blobs, and version operations are typed.
+- [x] 16. Add stream parser fuzzing and allocation benchmarks. **CP-16:** bounded parser fuzz smoke runs and `b.Loop` benchmarks pass.
+- [!] 17. Add deterministic HTTP/WebSocket contract tests. **CP-17:** HTTP and stream contracts require no credentials/network; Realtime WebSocket contract test remains pending.
+- [x] 18. Add README, DOC.md, DOC.ru.md, examples, and capability matrix docs. **CP-18:** example tests compile.
+- [!] 19. Add Makefile generation/verification targets and run quality gates. **CP-19:** lint/tests/race/vet/verify pass; govulncheck database access is blocked by the environment.
+- [!] 20. Perform final API, security, concurrency, and worktree review. **CP-20:** foundation reviewed; full upstream operation audit and Realtime test remain open.
+
+## Quality gate log
+
+| Gate | Result |
+|---|---|
+| `go generate ./...` | passed |
+| `make lint` | passed (`0 issues`; `govulncheck` warning: vulnerability DB unavailable) |
+| `make tests` | passed (goppy `-run Unit` target has no matching tests) |
+| `go test -race ./...` | passed |
+| `go vet ./...` | passed |
+| `go mod verify` | passed |
+| `git diff --check` | passed |
