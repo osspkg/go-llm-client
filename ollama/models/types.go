@@ -4,64 +4,100 @@ package models
 
 // Model is an installed or running model.
 type Model struct {
-	Name       string  `json:"name"`
-	Model      string  `json:"model,omitempty"`
-	ModifiedAt string  `json:"modified_at,omitempty"`
-	Size       int64   `json:"size,omitempty"`
-	Digest     string  `json:"digest,omitempty"`
-	Details    Details `json:"details,omitempty"`
-	ExpiresAt  string  `json:"expires_at,omitempty"`
-	SizeVRAM   int64   `json:"size_vram,omitempty"`
+	// Name identifies the function, model, project, or resource by name.
+	Name string `json:"name"`
+	// Model selects the model used for the operation.
+	Model string `json:"model,omitempty"`
+	// ModifiedAt contains the model modification timestamp.
+	ModifiedAt string `json:"modified_at,omitempty"`
+	// Size contains the model or file size in bytes.
+	Size int64 `json:"size,omitempty"`
+	// Digest identifies an immutable blob or model content by SHA-256 digest.
+	Digest string `json:"digest,omitempty"`
+	// Details contains model format, family, and quantization metadata.
+	Details Details `json:"details,omitempty"`
+	// ExpiresAt contains the time a running model will be unloaded.
+	ExpiresAt string `json:"expires_at,omitempty"`
+	// SizeVRAM contains the VRAM occupied by the running model in bytes.
+	SizeVRAM int64 `json:"size_vram,omitempty"`
 }
 
 // Details contains model metadata.
 type Details struct {
-	ParentModel       string   `json:"parent_model,omitempty"`
-	Format            string   `json:"format,omitempty"`
-	Family            string   `json:"family,omitempty"`
-	Families          []string `json:"families,omitempty"`
-	ParameterSize     string   `json:"parameter_size,omitempty"`
-	QuantizationLevel string   `json:"quantization_level,omitempty"`
+	// ParentModel identifies the model from which this model was derived.
+	ParentModel string `json:"parent_model,omitempty"`
+	// Format selects the model or response format.
+	Format string `json:"format,omitempty"`
+	// Family identifies the model family.
+	Family string `json:"family,omitempty"`
+	// Families lists model families supported by the model.
+	Families []string `json:"families,omitempty"`
+	// ParameterSize describes the model parameter count.
+	ParameterSize string `json:"parameter_size,omitempty"`
+	// QuantizationLevel describes the model quantization level.
+	QuantizationLevel string `json:"quantization_level,omitempty"`
 }
 
 // ListResponse lists local models.
 type ListResponse struct {
+	// Models contains the available or running models.
 	Models []Model `json:"models"`
 }
 
 // Request is shared by model lifecycle operations.
 type Request struct {
-	Model    string            `json:"model"`
-	From     string            `json:"from,omitempty"`
-	Files    map[string]string `json:"files,omitempty"`
-	Template string            `json:"template,omitempty"`
-	System   string            `json:"system,omitempty"`
-	License  []string          `json:"license,omitempty"`
-	Stream   bool              `json:"stream,omitempty"`
-	Insecure bool              `json:"insecure,omitempty"`
-	Quantize string            `json:"quantize,omitempty"`
+	// Model selects the model used for the operation.
+	Model string `json:"model"`
+	// From identifies the source model used to create a model.
+	From string `json:"from,omitempty"`
+	// Files maps model file names to uploaded blob SHA-256 digests.
+	Files map[string]string `json:"files,omitempty"`
+	// Template contains the prompt template used by a model.
+	Template string `json:"template,omitempty"`
+	// System contains the default system prompt for a model.
+	System string `json:"system,omitempty"`
+	// License contains one or more model license texts.
+	License []string `json:"license,omitempty"`
+	// Stream requests incremental events instead of one buffered response.
+	Stream bool `json:"stream,omitempty"`
+	// Insecure allows insecure model creation when the provider supports it.
+	Insecure bool `json:"insecure,omitempty"`
+	// Quantize selects the quantization format for model creation.
+	Quantize string `json:"quantize,omitempty"`
 }
 
 // Progress is a model lifecycle event.
 type Progress struct {
-	Status    string `json:"status"`
-	Digest    string `json:"digest,omitempty"`
-	Total     int64  `json:"total,omitempty"`
-	Completed int64  `json:"completed,omitempty"`
+	// Status reports the current provider processing or lifecycle state.
+	Status string `json:"status"`
+	// Digest identifies an immutable blob or model content by SHA-256 digest.
+	Digest string `json:"digest,omitempty"`
+	// Total contains the total number of bytes expected.
+	Total int64 `json:"total,omitempty"`
+	// Completed contains the number of bytes processed so far.
+	Completed int64 `json:"completed,omitempty"`
 }
 
 // ShowResponse contains model information.
 type ShowResponse struct {
-	License    string            `json:"license,omitempty"`
-	Modelfile  string            `json:"modelfile,omitempty"`
-	Parameters string            `json:"parameters,omitempty"`
-	Template   string            `json:"template,omitempty"`
-	System     string            `json:"system,omitempty"`
-	Details    Details           `json:"details,omitempty"`
-	ModelInfo  map[string]string `json:"model_info,omitempty"`
+	// License contains one or more model license texts.
+	License string `json:"license,omitempty"`
+	// Modelfile contains the provider value used for the `Modelfile` field.
+	Modelfile string `json:"modelfile,omitempty"`
+	// Parameters contains the JSON Schema or arguments accepted by a function.
+	Parameters string `json:"parameters,omitempty"`
+	// Template contains the prompt template used by a model.
+	Template string `json:"template,omitempty"`
+	// System contains the default system prompt for a model.
+	System string `json:"system,omitempty"`
+	// Details contains model format, family, and quantization metadata.
+	Details Details `json:"details,omitempty"`
+	// ModelInfo contains provider-specific model metadata.
+	ModelInfo map[string]string `json:"model_info,omitempty"`
 }
 
 // VersionResponse contains the Ollama version.
 type VersionResponse struct {
+	// Version contains the Ollama server version.
 	Version string `json:"version"`
 }

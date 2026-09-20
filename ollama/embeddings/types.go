@@ -6,19 +6,30 @@ import "encoding/json"
 
 // Request creates one or more embeddings.
 type Request struct {
-	Model      string          `json:"model"`
-	Input      json.RawMessage `json:"input"`
-	Truncate   *bool           `json:"truncate,omitempty"`
-	Dimensions int             `json:"dimensions,omitempty"`
-	KeepAlive  string          `json:"keep_alive,omitempty"`
-	Options    json.RawMessage `json:"options,omitempty"`
+	// Model selects the model used for the operation.
+	Model string `json:"model"`
+	// Input contains the text, tokens, or input items to process.
+	Input json.RawMessage `json:"input"`
+	// Truncate controls whether inputs exceeding the context window are truncated.
+	Truncate *bool `json:"truncate,omitempty"`
+	// Dimensions requests the number of dimensions for generated embeddings.
+	Dimensions int `json:"dimensions,omitempty"`
+	// KeepAlive sets how long Ollama keeps the model loaded.
+	KeepAlive string `json:"keep_alive,omitempty"`
+	// Options contains model-specific generation options.
+	Options json.RawMessage `json:"options,omitempty"`
 }
 
 // Response contains embeddings.
 type Response struct {
-	Model           string      `json:"model"`
-	Embeddings      [][]float64 `json:"embeddings"`
-	TotalDuration   int64       `json:"total_duration,omitempty"`
-	LoadDuration    int64       `json:"load_duration,omitempty"`
-	PromptEvalCount int         `json:"prompt_eval_count,omitempty"`
+	// Model selects the model used for the operation.
+	Model string `json:"model"`
+	// Embeddings contains one numeric vector per input item.
+	Embeddings [][]float64 `json:"embeddings"`
+	// TotalDuration contains total Ollama processing time in nanoseconds.
+	TotalDuration int64 `json:"total_duration,omitempty"`
+	// LoadDuration contains Ollama model-load time in nanoseconds.
+	LoadDuration int64 `json:"load_duration,omitempty"`
+	// PromptEvalCount counts input tokens evaluated by Ollama.
+	PromptEvalCount int `json:"prompt_eval_count,omitempty"`
 }
