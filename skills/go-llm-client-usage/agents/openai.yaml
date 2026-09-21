@@ -1,0 +1,4 @@
+interface:
+  display_name: "Go LLM Client Usage"
+  short_description: "Use go.osspkg.com/llm-client with provider-native Go clients"
+  default_prompt: "Use $go-llm-client-usage to implement or explain this repository's LLM client integration."
