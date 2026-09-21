@@ -45,8 +45,6 @@ configuration snapshot; it does not silently emulate or fall back to another
 endpoint when a provider does not support an operation.
 
 The implementation covers the listed Anthropic and native llama.cpp endpoints.
-`PLAN.md` identifies the domains that still require a complete
-operation-by-operation audit against the pinned OpenAI snapshot. Anthropic beta
-managed-agent domains and llama.cpp internal `/tools` endpoints are explicitly
-out of scope. Endpoints added after the recorded snapshots require a deliberate
-revision update and matrix review before being exposed.
+Anthropic beta managed-agent domains and llama.cpp internal `/tools` endpoints
+are explicitly out of scope. Endpoints added after the recorded snapshots
+require a deliberate revision update and matrix review before being exposed.

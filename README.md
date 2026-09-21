@@ -214,7 +214,6 @@ For the current endpoint and capability status, see:
 - [`docs/capability-matrix.md`](docs/capability-matrix.md)
 - [`DOC.md`](DOC.md) — English API and architecture reference
 - [`DOC.ru.md`](DOC.ru.md) — Russian guide
-- [`PLAN.md`](PLAN.md) — implementation checkpoints and compatibility notes
 
 ## Development
 
