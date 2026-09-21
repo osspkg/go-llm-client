@@ -3,9 +3,11 @@
 ## Architecture
 
 - This repository is a Go library (`go.osspkg.com/llm-client`) targeting Go 1.26.
-- `openai` and `ollama` are independent provider bounded contexts.
+- `openai`, `anthropic`, `llama`, and `ollama` are independent provider bounded contexts.
 - Provider domain packages own provider-native request, response, event, and error models.
 - Provider-independent infrastructure belongs under `pkg` and must not import provider packages.
+- Native llama.cpp `/v1/*` compatibility routes are owned by `openai`; `llama` contains only native routes.
+- Anthropic managed-agent beta domains are not part of the stable client surface.
 - Root provider clients compose domain clients but do not hide provider-specific wire semantics.
 
 ## Dependencies and serialization

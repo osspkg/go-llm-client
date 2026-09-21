@@ -187,7 +187,7 @@ func NewSSE[T any](body io.ReadCloser, decode JSONDecoder[T], maxSize int64) *SS
 }
 
 // Next reads the next JSON data event. The terminal [DONE] event ends the stream.
-func (s *SSE[T]) Next(ctx context.Context) bool {
+func (s *SSE[T]) Next(ctx context.Context) bool { //nolint:revive // the event parser is a bounded protocol state machine.
 	if s.closed || s.err != nil || s.done {
 		return false
 	}
@@ -229,7 +229,11 @@ func (s *SSE[T]) Next(ctx context.Context) bool {
 			continue
 		}
 		chunk := bytes.TrimSpace(line[len("data:"):])
-		if int64(len(data)+len(chunk)) > s.maxSize {
+		separatorSize := 0
+		if len(data) > 0 {
+			separatorSize = 1
+		}
+		if int64(len(data)+separatorSize+len(chunk)) > s.maxSize {
 			s.err = llmerrors.ErrBodyTooLarge
 			_ = s.Close()
 			return false
@@ -239,7 +243,7 @@ func (s *SSE[T]) Next(ctx context.Context) bool {
 		}
 		data = append(data, chunk...)
 	}
-	if strings.TrimSpace(string(data)) == "[DONE]" {
+	if bytes.Equal(bytes.TrimSpace(data), []byte("[DONE]")) {
 		s.done = true
 		_ = s.Close()
 		return false
@@ -274,18 +278,21 @@ func (s *SSE[T]) Close() error {
 }
 
 func (s *SSE[T]) readLine() ([]byte, error) {
-	line, err := s.reader.ReadBytes('\n')
-	if len(line) > 0 && line[len(line)-1] == '\n' {
-		line = line[:len(line)-1]
+	var line []byte
+	for {
+		part, isPrefix, err := s.reader.ReadLine()
+		if err != nil {
+			if errors.Is(err, io.EOF) && len(line) > 0 {
+				return line, nil
+			}
+			return nil, err
+		}
+		if int64(len(line)+len(part)) > s.maxSize {
+			return nil, llmerrors.ErrBodyTooLarge
+		}
+		line = append(line, part...)
+		if !isPrefix {
+			return bytes.TrimSuffix(line, []byte{'\r'}), nil
+		}
 	}
-	if len(line) > 0 && line[len(line)-1] == '\r' {
-		line = line[:len(line)-1]
-	}
-	if errors.Is(err, io.EOF) && len(line) > 0 {
-		return line, nil
-	}
-	if int64(len(line)) > s.maxSize {
-		return nil, llmerrors.ErrBodyTooLarge
-	}
-	return line, err
 }

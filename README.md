@@ -5,7 +5,8 @@
 ![Go version](https://img.shields.io/badge/Go-1.26.8-00ADD8?logo=go&logoColor=white)
 [![License](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](LICENSE)
 
-Typed Go clients for OpenAI-compatible providers and Ollama. The library calls
+Typed Go clients for OpenAI-compatible providers, Anthropic-compatible servers,
+native llama.cpp, and Ollama. The library calls
 provider HTTP and WebSocket APIs directly and exposes provider-native models
 organized by bounded context.
 
@@ -28,6 +29,10 @@ organized by bounded context.
   Realtime WebSocket sessions.
 - Ollama client with generation, chat, embeddings, model management, blobs, and
   version APIs.
+- Anthropic Messages, Models, Files, and Message Batches clients, including
+  typed SSE events and cursor pagination.
+- Native llama.cpp client for completion, embeddings, tokenization, templates,
+  server properties, slots, LoRA, metrics, router models, and reranking.
 - Typed SSE and NDJSON iterators with explicit `Next`, `Value`, `Err`, and
   `Close` lifecycle methods.
 - Bounded response and event sizes, context cancellation, typed protocol errors,
@@ -94,6 +99,27 @@ client, err := openai.New(
 	openai.WithBaseURL("http://localhost:8080/v1"),
 	openai.WithAuthProvider(auth.StaticBearer("token")),
 )
+```
+
+Anthropic uses `x-api-key` and the required API version by default:
+
+```go
+client, err := anthropic.New(anthropic.WithAPIKey(os.Getenv("ANTHROPIC_API_KEY")))
+response, err := client.Messages.Create(ctx, messages.Request{
+	Model: "claude-3-5-sonnet-latest", MaxTokens: 256,
+	Messages: []messages.Message{{Role: "user", Content: messages.TextContent("Hello")}},
+})
+```
+
+For a native llama.cpp server, use the separate native client. Its default
+endpoint is `http://localhost:8080`:
+
+```go
+client, err := llama.New()
+response, err := client.Completions.Create(ctx, completions.Request{
+	Prompt: completions.StringPrompt("Write one short sentence."),
+	NPredict: 32,
+})
 ```
 
 Ollama uses `http://localhost:11434` by default:
@@ -164,6 +190,8 @@ for parser limits and error handling.
 | Provider | Package | Transport | Default endpoint |
 | --- | --- | --- | --- |
 | OpenAI-compatible | [`openai`](openai) | HTTP; Realtime WebSocket | `https://api.openai.com/v1` |
+| Anthropic-compatible | [`anthropic`](anthropic) | HTTP; SSE | `https://api.anthropic.com/v1` |
+| Native llama.cpp | [`llama`](llama) | HTTP; SSE | `http://localhost:8080` |
 | Ollama | [`ollama`](ollama) | HTTP; NDJSON streaming | `http://localhost:11434` |
 
 Provider APIs remain separate. There is no provider-neutral facade that hides

@@ -1,37 +1,106 @@
 # Справочник API и архитектуры
 
-Библиотека `go.osspkg.com/llm-client` содержит два provider-native клиента:
-OpenAI-compatible и Ollama.
+`go.osspkg.com/llm-client` содержит независимые provider-native клиенты. Каждый
+клиент выполняет типизированные HTTP- или WebSocket-вызовы API провайдера; Go-код
+не запускает модель и не вызывает Go callback изнутри LLM.
+
+## Провайдеры и границы пакетов
+
+- `openai` — OpenAI-compatible REST, полный закреплённый public/admin REST,
+  media, uploads и Realtime WebSocket.
+- `anthropic` — стабильные Anthropic Messages, Count Tokens, Models, Files и
+  Message Batches. Agents и другие managed-agent beta-домены в этот этап не
+  входят.
+- `llama` — native REST API llama.cpp server. OpenAI-compatible `/v1/*`
+  остаётся доступным через `openai.WithBaseURL` и здесь не дублируется.
+- `ollama` — официальный Ollama HTTP API.
+- `pkg/*` — независимые от провайдеров transport, authentication, typed errors,
+  pagination, stream parsers, codec и WebSocket lifecycle.
+
+Доменные пакеты владеют native-моделями запросов, ответов и событий своего
+провайдера: `anthropic/messages`, `anthropic/models`, `anthropic/files`,
+`anthropic/batches` и соответствующие пакеты `llama/*`. Это сохраняет wire
+semantics и делает неподдерживаемые возможности явными.
+
+## Создание клиента и авторизация
 
 ```go
-client, err := openai.New(
-	openai.WithBaseURL("https://api.openai.com/v1"),
-	openai.WithAuthProvider(auth.StaticBearer("token")),
+anthropicClient, err := anthropic.New(
+	anthropic.WithAPIKey(os.Getenv("ANTHROPIC_API_KEY")),
 )
 if err != nil {
 	return err
 }
 
-completion, err := client.Chat.Create(ctx, chat.Request{Model: "model"})
+llamaClient, err := llama.New(
+	llama.WithBaseURL("http://localhost:8080"),
+)
 ```
 
-Провайдер предоставляет HTTP- или WebSocket-API. Go-библиотека выполняет
-типизированные transport-вызовы этого API; Go-клиент не запускает модель и не
-вызывает Go callback изнутри LLM.
+Anthropic по умолчанию использует `https://api.anthropic.com/v1` и отправляет
+`anthropic-version: 2023-06-01`. `WithAPIKey` добавляет `x-api-key`, а
+`WithBearerToken` — `Authorization: Bearer`. Workspace- и beta-заголовки
+задаются явными опциями. `WithAuthProvider` позволяет возвращать собственные
+заголовки для каждой операции.
 
-## Границы пакетов
+Native llama.cpp по умолчанию использует `http://localhost:8080`; его auth
+callback также вызывается перед каждым запросом. `RequestMeta.Domain` всегда
+содержит hostname назначения, в том числе для custom base URL. Credentials не
+попадают в URL и сообщения ошибок.
 
-Пакеты `openai/*` и `ollama/*` являются bounded contexts: они владеют
-provider-native моделями запросов, ответов и операциями. В `pkg/*` находятся
-независимые от провайдеров компоненты transport, auth, errors, pagination,
-stream, codec и WebSocket lifecycle. Типы провайдеров не импортируются в `pkg`.
+## Anthropic Messages
 
-Такое разделение сохраняет wire semantics каждого API и не скрывает
-provider-specific возможности за общей нормализованной facade.
+```go
+response, err := anthropicClient.Messages.Create(ctx, messages.Request{
+	Model:     "claude-3-5-sonnet-latest",
+	MaxTokens: 256,
+	Messages: []messages.Message{{
+		Role:    "user",
+		Content: messages.TextContent("Объясни SSE одним предложением."),
+	}},
+})
+```
+
+Messages предоставляет типизированные структуры для text, image, document,
+thinking, redacted-thinking, tool-use и tool-result блоков. Поля
+`Message.Content` и другие настоящие Anthropic string-or-array или
+unions представлены явными provider union wrappers; schema-defined JSON,
+например tool arguments, по-прежнему использует `json.RawMessage`.
+
+`CreateStream` возвращает `stream.Iterator[messages.StreamEvent]`. Общий SSE
+parser обрабатывает Anthropic event frames, `[DONE]`, границы событий по пустой
+строке, ограничение размера, malformed JSON, отмену контекста и явный `Close`.
+`Batches.Results` возвращает ограниченный NDJSON iterator с результатами
+завершённого batch. Скачивание содержимого файла возвращает `io.ReadCloser`,
+которым владеет вызывающий код; upload читает `io.Reader` через ограниченный
+multipart request.
+
+## Native llama.cpp
+
+Native-клиент предоставляет:
+
+- `Completions` для `/completion`: string, token-array, mixed и multimodal
+  prompt, sampling settings, cache/slot/LoRA overrides, typed timings, stop
+  metadata и SSE streaming;
+- `Embeddings` для `/embeddings` и singular alias `/embedding`;
+- `Tokenization` для `/tokenize` и `/detokenize`, включая union token piece в
+  форме строки или массива байт;
+- `Templates` для `/apply-template`;
+- `Server` для `/health`, `/props` и изменения `/props`;
+- `Slots` для списка и save/restore/erase prompt cache;
+- `Lora` для списка адаптеров и изменения их scale;
+- `Metrics` для ограниченного Prometheus text response;
+- `Models` для router list, download, load, unload и model lifecycle SSE;
+- `Rerank` для native reranking endpoint.
+
+В конкретной сборке llama.cpp native endpoint может быть выключен или отсутствовать.
+Клиент вернёт `errors.CapabilityError`, а исходный ограниченный `HTTPError`
+останется доступен через `errors.As`; незаметного перехода на OpenAI- или
+Anthropic-endpoint не происходит.
 
 ## Потоки и владение ресурсами
 
-HTTP-потоки реализуют `stream.Iterator[T]`:
+Все типизированные HTTP-потоки реализуют:
 
 ```go
 type Iterator[T any] interface {
@@ -42,39 +111,41 @@ type Iterator[T any] interface {
 }
 ```
 
-SSE распознаёт кадры `data:` и маркер `[DONE]`. Ollama использует ограниченные
-значения NDJSON, разделённые переводом строки. Каждый iterator владеет своим
-`response body`; вызывающий код обязан вызвать `Close`, в том числе при
-досрочном прекращении обработки.
+Iterator владеет своим response body. Вызывайте `Close` на каждом пути, в том
+числе при досрочном завершении. Для callback-стиля есть `stream.ForEach`.
+Parser не использует неограниченный scanner: response body и event lines
+ограничены настройками transport и stream.
 
-Realtime-сессии используют lifecycle `Connect`, `Send`, `Receive` и `Close`.
-Чтение и запись сериализуются общим WebSocket lifecycle wrapper, поэтому
-операции имеют явного владельца и контролируемое завершение.
+## Сериализация и ошибки
 
-## Сериализация
+Пакеты моделей содержат `//go:generate easyjson -all types.go`, а сгенерированные
+`*_easyjson.go` коммитятся. Запускайте `go generate ./...`; generated-файлы нельзя
+редактировать вручную. Неизвестные JSON-поля игнорируются. `RawMessage`
+используется только там, где upstream явно разрешает произвольный JSON: schemas,
+tool input и документированные union payloads.
 
-Importable-пакеты моделей содержат директиву
-`//go:generate easyjson -all types.go`, а сгенерированный код `*_easyjson.go`
-хранится в репозитории. Generated-файлы нельзя редактировать вручную.
+Общий transport задаёт лимиты dial, TLS handshake, response headers, request,
+stream и body. Автоматические retries разрешены только для безопасных
+идемпотентных методов; generation, uploads, streaming и WebSocket не повторяются.
+Через `errors.Is` и `errors.As` можно различить validation, cancellation,
+protocol, decode и `HTTPError`.
 
-Неизвестные JSON-поля игнорируются. `json.RawMessage` используется только для
-полей, которым upstream-спецификация намеренно разрешает произвольный JSON,
-например для схем и аргументов инструментов.
+## Версии контрактов и разработка
 
-## Таймауты, лимиты, повторы и ошибки
+Владельцы endpoint и upstream snapshots указаны в
+[`docs/capability-matrix.md`](docs/capability-matrix.md). Для llama.cpp там
+зафиксирован документированный snapshot ветки `master` и дата проверки; между
+релизами llama.cpp набор optional native endpoints может измениться.
 
-Общий transport задаёт ограничение размера response и request body, таймауты
-dial, TLS handshake и response headers, передаёт context и поддерживает
-настраиваемые retry. Автоматические повторы отключены для generation,
-upload, stream и WebSocket operations; повторяться могут только безопасные
-идемпотентные методы.
+```text
+go generate ./...
+make lint
+make tests
+go test -race ./...
+go vet ./...
+go mod verify
+git diff --check
+```
 
-HTTP-ошибки сохраняют HTTP status и request ID, но не сохраняют полный body
-провайдера и credentials. Для обработки ошибок используйте `errors.Is` и
-`errors.As`: они позволяют различать validation, protocol, decode,
-cancellation и HTTP errors.
-
-## Версии контрактов
-
-Закреплённые upstream revisions, владельцы endpoint’ов и текущие возможности
-указаны в [матрице capability](docs/capability-matrix.md).
+Тесты используют deterministic `httptest` и локальные protocol fixtures. Живые
+credentials провайдеров не требуются.

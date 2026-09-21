@@ -82,3 +82,28 @@ func (e *DecodeError) Error() string {
 
 // Unwrap exposes the underlying decode failure.
 func (e *DecodeError) Unwrap() error { return e.Cause }
+
+// CapabilityError identifies an endpoint that the selected provider build does
+// not expose. Cause retains the bounded underlying protocol or HTTP error.
+type CapabilityError struct {
+	// Operation is the provider operation name used by the client.
+	Operation string
+	// Endpoint is the relative endpoint that was unavailable.
+	Endpoint string
+	// Cause is the underlying bounded protocol error.
+	Cause error
+}
+
+// Error implements error.
+func (e *CapabilityError) Error() string {
+	if e == nil {
+		return "llm client: capability error"
+	}
+	if e.Operation == "" {
+		return "llm client: unsupported capability: " + e.Endpoint
+	}
+	return fmt.Sprintf("llm client: unsupported capability %s: %s", e.Operation, e.Endpoint)
+}
+
+// Unwrap exposes both the protocol category and the bounded cause.
+func (e *CapabilityError) Unwrap() []error { return []error{ErrProtocol, e.Cause} }

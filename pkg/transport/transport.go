@@ -58,9 +58,9 @@ type Client struct {
 
 // New creates a bounded HTTP client with stdlib defaults.
 func New(baseURL string, options ...Option) (*Client, error) {
-	parsed, err := url.Parse(baseURL)
-	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
-		return nil, fmt.Errorf("%w: base url", llmerrors.ErrInvalidConfig)
+	parsed, err := parseBaseURL(baseURL)
+	if err != nil {
+		return nil, err
 	}
 	client := &Client{
 		baseURL:         parsed,
@@ -96,13 +96,21 @@ func WithHTTPClient(httpClient *http.Client) Option {
 // WithBaseURL replaces the endpoint URL after construction.
 func WithBaseURL(baseURL string) Option {
 	return func(client *Client) error {
-		parsed, err := url.Parse(baseURL)
-		if err != nil || parsed.Scheme == "" || parsed.Host == "" {
-			return fmt.Errorf("%w: base url", llmerrors.ErrInvalidConfig)
+		parsed, err := parseBaseURL(baseURL)
+		if err != nil {
+			return err
 		}
 		client.baseURL = parsed
 		return nil
 	}
+}
+
+func parseBaseURL(value string) (*url.URL, error) {
+	parsed, err := url.Parse(value)
+	if err != nil || parsed.Host == "" || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.User != nil {
+		return nil, fmt.Errorf("%w: base url", llmerrors.ErrInvalidConfig)
+	}
+	return parsed, nil
 }
 
 // WithAuthProvider configures per-request authentication headers.

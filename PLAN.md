@@ -12,6 +12,14 @@ Status markers: `[ ]` pending, `[x]` complete, `[!]` blocked or needs review.
 - Unknown JSON fields are ignored; arbitrary JSON is retained only in spec-defined fields.
 - Streams use `Next/Value/Err/Close`; Realtime uses an explicit Session lifecycle.
 - Tests are deterministic mocks only; no live provider credentials are required.
+- Anthropic stable API uses the documented `2023-06-01` version; managed-agent
+  beta domains remain out of scope.
+- Native llama.cpp uses its native routes only; OpenAI-compatible `/v1/*` routes
+  remain owned by `openai`.
+- Missing native llama.cpp routes are surfaced as `pkg/errors.CapabilityError`
+  while preserving the underlying bounded `HTTPError` in the error chain.
+- SSE line accumulation uses bounded `bufio.Reader.ReadLine` fragments; it never
+  buffers an unbounded physical line before applying the event limit.
 
 ## Tasks
 
@@ -35,6 +43,10 @@ Status markers: `[ ]` pending, `[x]` complete, `[!]` blocked or needs review.
 - [x] 18. Add README, DOC.md, DOC.ru.md, examples, and capability matrix docs. **CP-18:** example tests compile.
 - [x] 19. Add Makefile generation/verification targets and run quality gates. **CP-19:** `make verify` passes generation, lint, tests, race, vet, module verification and diff checks. `govulncheck` is best-effort and cannot fetch its database from this sandbox.
 - [!] 20. Perform final API, security, concurrency, and worktree review. **CP-20:** transport and Realtime lifecycle have been reviewed; a full typed-operation audit against the current pinned OpenAI snapshot remains open.
+- [x] 21. Add the Anthropic stable provider root and bounded contexts. **CP-21:** Messages, Count Tokens, Models, Files, Batches, auth headers, cursor pages, multipart upload/download, SSE events, and JSONL batch results are typed and covered by deterministic tests.
+- [x] 22. Add the native llama.cpp provider root and bounded contexts. **CP-22:** completion, embeddings, tokenization, templates, server properties, slots, LoRA, metrics, router models, and reranking use native routes without OpenAI fallback.
+- [x] 23. Add provider-specific unions, comments, fuzz targets, benchmarks, and documentation. **CP-23:** JSON fields have developer-facing GoDoc, generated easyjson files are reproducible, provider examples and capability documentation describe the supported surfaces.
+- [x] 24. Run the final quality gates for the Anthropic and llama.cpp additions. **CP-24:** generation, lint, unit tests, race tests, vet, module verification, and diff checks pass; vulnerability scanning remains best-effort when its database is unavailable.
 
 ## Quality gate log
 
@@ -47,3 +59,5 @@ Status markers: `[ ]` pending, `[x]` complete, `[!]` blocked or needs review.
 | `go vet ./...` | passed |
 | `go mod verify` | passed |
 | `git diff --check` | passed |
+| Stream/provider fuzz smoke | passed (`pkg/stream:FuzzSSEDoesNotPanic`, `anthropic/messages:FuzzStreamEventJSON`, `llama:FuzzNativePromptJSON`, 1s each) |
+| Stream/native benchmarks | passed (`go test ./pkg/stream ./llama -run=^$ -bench=. -benchtime=1x`) |

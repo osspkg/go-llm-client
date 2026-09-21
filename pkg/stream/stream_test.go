@@ -81,6 +81,14 @@ func TestStreamContextAndLimit(t *testing.T) {
 	if !errors.Is(large.Err(), llmerrors.ErrBodyTooLarge) {
 		t.Fatalf("got %v, want body-too-large", large.Err())
 	}
+
+	largeSSE := stream.NewSSE(io.NopCloser(strings.NewReader("data: 12345\n\n")), decodeInt, 2)
+	if largeSSE.Next(context.Background()) {
+		t.Fatal("expected oversized SSE line failure")
+	}
+	if !errors.Is(largeSSE.Err(), llmerrors.ErrBodyTooLarge) {
+		t.Fatalf("got %v, want body-too-large", largeSSE.Err())
+	}
 }
 
 func decodeInt(data []byte) (int, error) {

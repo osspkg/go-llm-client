@@ -128,3 +128,14 @@ func TestRequestMapsStatusAndBodyLimit(t *testing.T) {
 		t.Fatalf("error = %v", err)
 	}
 }
+
+func TestBaseURLRejectsCredentialsAndNonHTTPSchemes(t *testing.T) {
+	for _, value := range []string{"https://user:secret@example.test", "ftp://example.test"} {
+		t.Run(value, func(t *testing.T) {
+			_, err := transport.New(value)
+			if !errors.Is(err, llmerrors.ErrInvalidConfig) {
+				t.Fatalf("error = %v", err)
+			}
+		})
+	}
+}
