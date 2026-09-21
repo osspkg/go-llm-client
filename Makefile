@@ -1,7 +1,5 @@
 
 SHELL=/bin/bash
-GO_ROOT := $(shell go env GOROOT)
-export PATH := $(GO_ROOT)/bin:$(PATH)
 
 
 .PHONY: install
@@ -13,10 +11,6 @@ install:
 lint:
 	goppy lint
 
-.PHONY: generate
-generate:
-	go generate ./...
-
 .PHONY: license
 license:
 	goppy license
@@ -27,21 +21,11 @@ build:
 
 .PHONY: tests
 tests:
-	go test ./...
-
-.PHONY: verify
-verify: generate lint tests
-	go test -race ./...
-	go vet ./...
-	go mod verify
-	git diff --check
+	goppy test
 
 .PHONY: pre-commit
-pre-commit: install license generate lint tests build
+pre-commit: install license lint tests build
 
 .PHONY: ci
-ci: verify build
+ci: pre-commit
 
-.PHONY: vulncheck
-vulncheck:
-	govulncheck ./...
