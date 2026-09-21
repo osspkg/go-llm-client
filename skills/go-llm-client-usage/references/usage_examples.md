@@ -88,6 +88,21 @@ Use `llama.Tokenization()`, `Server()`, `Slots()`, `LoRA()`, `Models()`, and
 `Metrics()` only for native routes. Do not send OpenAI `/v1/*` requests through
 this root.
 
+## Server environment metadata
+
+Environment metadata does not require a client instance:
+
+```go
+for _, variable := range llama.EnvironmentScheme().Variables {
+	fmt.Printf("%s (default %q): %s\n", variable.Name, variable.Default, variable.Description)
+}
+```
+
+Use `ollama.EnvironmentScheme()` for Ollama server variables. The returned
+entries are descriptions only; the library does not read or set environment
+variables. `AllowedValues` is empty for documented scalar formats such as
+paths, durations, integers, and comma-separated lists.
+
 ## Ollama NDJSON stream
 
 ```go

@@ -35,6 +35,10 @@ organized by bounded context.
   server properties, slots, LoRA, metrics, router models, and reranking.
 - Typed SSE and NDJSON iterators with explicit `Next`, `Value`, `Err`, and
   `Close` lifecycle methods.
+- Provider-independent environment metadata through
+  `ollama.EnvironmentScheme()` and `llama.EnvironmentScheme()`; each entry
+  includes the variable name, finite allowed values when applicable, default,
+  and operational description.
 - Bounded response and event sizes, context cancellation, typed protocol errors,
   and deterministic `httptest`-based tests.
 - `easyjson`-generated provider models; `github.com/coder/websocket` is used
@@ -192,6 +196,23 @@ if err := events.Err(); err != nil {
 The same iterator contract is used for OpenAI SSE and Ollama NDJSON streams.
 See [`pkg/stream`](pkg/stream) and the streaming sections in [`DOC.md`](DOC.md)
 for parser limits and error handling.
+
+## Server environment schemes
+
+The Ollama and native llama.cpp clients expose server configuration metadata
+without requiring a client instance:
+
+```go
+for _, variable := range ollama.EnvironmentScheme().Variables {
+	fmt.Printf("%s (default %q): %s\n", variable.Name, variable.Default, variable.Description)
+}
+```
+
+`AllowedValues` is populated for finite enumerations. An empty slice means the
+provider accepts a documented scalar format such as a path, duration, integer,
+or comma-separated list; the required format is described in `Description`.
+The function returns metadata only and does not read or modify the process
+environment. Use `llama.EnvironmentScheme()` for llama-server variables.
 
 ## Provider coverage
 

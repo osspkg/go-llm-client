@@ -30,6 +30,9 @@ package's request and response types; do not mix models across providers.
 - `ollama.New`: default endpoint is `http://localhost:11434`.
 - Every root supports a custom HTTP client and request/body limits through its
   documented options.
+- `llama.EnvironmentScheme()` and `ollama.EnvironmentScheme()` return
+  client-independent `pkg/environment.Scheme` metadata for provider server
+  environment variables.
 
 `auth.HeaderProvider` receives `auth.RequestMeta`. `RequestMeta.Domain` is
 always the destination hostname without port, path, query, or credentials.
@@ -49,6 +52,15 @@ always the destination hostname without port, path, query, or credentials.
 
 Do not use `llama` for `/v1/chat/completions` or `/v1/embeddings`; those
 OpenAI-compatible routes belong to `openai`.
+
+## Environment schemes
+
+Environment schemes are metadata functions, not client methods. Each variable
+contains its exact name, finite `AllowedValues` when applicable, documented
+`Default`, and a description of its purpose and value format. An empty
+`AllowedValues` slice means the provider accepts a scalar or provider-dependent
+format such as a path, duration, integer, or comma-separated list. Calling a
+scheme does not read or modify the process environment.
 
 ## Stream and error contracts
 

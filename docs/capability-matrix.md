@@ -48,3 +48,9 @@ The implementation covers the listed Anthropic and native llama.cpp endpoints.
 Anthropic beta managed-agent domains and llama.cpp internal `/tools` endpoints
 are explicitly out of scope. Endpoints added after the recorded snapshots
 require a deliberate revision update and matrix review before being exposed.
+
+Ollama and native llama.cpp server configuration metadata is exposed separately
+through the client-independent `ollama.EnvironmentScheme()` and
+`llama.EnvironmentScheme()` functions. The schemes describe documented
+environment variable names, finite values, defaults, and operational purpose;
+they do not read or modify the process environment.

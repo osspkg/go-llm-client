@@ -103,6 +103,26 @@ Native-клиент после создания неизменяем и пред
 останется доступен через `errors.As`; незаметного перехода на OpenAI- или
 Anthropic-endpoint не происходит.
 
+## Схемы переменных окружения сервера
+
+Метаданные переменных окружения не привязаны к экземпляру клиента. Root-пакеты
+предоставляют `ollama.EnvironmentScheme()` и `llama.EnvironmentScheme()`. Каждая
+функция возвращает `pkg/environment.Scheme` со списком переменных сервера:
+
+```go
+scheme := llama.EnvironmentScheme()
+for _, variable := range scheme.Variables {
+	fmt.Printf("%s=%q: %s\n", variable.Name, variable.Default, variable.Description)
+}
+```
+
+Каждый `environment.Variable` содержит точное имя переменной, конечный список
+`AllowedValues`, если провайдер задаёт перечисление, значение `Default` и
+понятное описание назначения и формата значения. Пустой `AllowedValues` означает
+скалярный или зависящий от провайдера формат: путь, duration, число или список,
+а не разрешение произвольного JSON. Функции не читают и не изменяют
+`os.Environ` и не требуют создания root-клиента.
+
 ## Потоки и владение ресурсами
 
 Все типизированные HTTP-потоки реализуют:

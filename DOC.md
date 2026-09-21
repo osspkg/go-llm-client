@@ -102,6 +102,26 @@ The client returns `errors.CapabilityError` for a missing native route; its
 cause remains available through `errors.As` as the bounded `HTTPError`. It does
 not silently fall back to an OpenAI or Anthropic endpoint.
 
+## Server environment schemes
+
+Environment metadata is independent of a client instance. The provider roots
+expose `ollama.EnvironmentScheme()` and `llama.EnvironmentScheme()`, each of
+which returns `pkg/environment.Scheme` with the documented server variables:
+
+```go
+scheme := llama.EnvironmentScheme()
+for _, variable := range scheme.Variables {
+	fmt.Printf("%s=%q: %s\n", variable.Name, variable.Default, variable.Description)
+}
+```
+
+Each `environment.Variable` contains the exact variable name, finite
+`AllowedValues` when the provider documents an enumeration, the documented
+`Default`, and a description of the variable's operational purpose and value
+format. An empty `AllowedValues` means that the value is scalar or
+provider-dependent, not that arbitrary JSON is accepted. The functions do not
+read or mutate `os.Environ` and do not require a root client.
+
 ## Streams and ownership
 
 All typed HTTP streams implement:
