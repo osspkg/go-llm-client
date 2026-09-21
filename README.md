@@ -77,7 +77,7 @@ func main() {
 		panic(err)
 	}
 
-	response, err := client.Chat.Create(context.Background(), chat.Request{
+	response, err := client.Chat().Create(context.Background(), chat.Request{
 		Model: "model",
 		Messages: []chat.Message{{
 			Role:    "user",
@@ -105,9 +105,13 @@ Anthropic uses `x-api-key` and the required API version by default:
 
 ```go
 client, err := anthropic.New(anthropic.WithAPIKey(os.Getenv("ANTHROPIC_API_KEY")))
-response, err := client.Messages.Create(ctx, messages.Request{
+content, err := messages.TextContent("Hello")
+if err != nil {
+	panic(err)
+}
+response, err := client.Messages().Create(ctx, messages.Request{
 	Model: "claude-3-5-sonnet-latest", MaxTokens: 256,
-	Messages: []messages.Message{{Role: "user", Content: messages.TextContent("Hello")}},
+	Messages: []messages.Message{{Role: "user", Content: content}},
 })
 ```
 
@@ -116,8 +120,12 @@ endpoint is `http://localhost:8080`:
 
 ```go
 client, err := llama.New()
-response, err := client.Completions.Create(ctx, completions.Request{
-	Prompt: completions.StringPrompt("Write one short sentence."),
+prompt, err := completions.StringPrompt("Write one short sentence.")
+if err != nil {
+	panic(err)
+}
+response, err := client.Completions().Create(ctx, completions.Request{
+	Prompt: prompt,
 	NPredict: 32,
 })
 ```
@@ -141,7 +149,7 @@ func main() {
 		panic(err)
 	}
 
-	response, err := client.Chat.Create(context.Background(), chat.Request{
+	response, err := client.Chat().Create(context.Background(), chat.Request{
 		Model:    "llama3.2",
 		Messages: []chat.Message{{Role: "user", Content: "Hello"}},
 	})
@@ -159,7 +167,7 @@ Streaming calls return typed iterators. The caller owns the iterator and must
 close it when processing is complete.
 
 ```go
-events, err := client.Chat.CreateStream(ctx, chat.Request{
+events, err := client.Chat().CreateStream(ctx, chat.Request{
 	Model: "model",
 	Messages: []chat.Message{{
 		Role:    "user",
@@ -196,6 +204,10 @@ for parser limits and error handling.
 
 Provider APIs remain separate. There is no provider-neutral facade that hides
 provider-specific capabilities or request models.
+
+Root clients are immutable after construction and safe for concurrent use;
+domain clients are obtained through accessors such as `client.Chat()` and
+`client.Completions()`.
 
 For the current endpoint and capability status, see:
 

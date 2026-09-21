@@ -13,18 +13,18 @@ import (
 type Client struct{ transport *transport.Client }
 
 // New creates a client on shared transport.
-func New(c *transport.Client) *Client { return &Client{c} }
+func New(client *transport.Client) *Client { return &Client{transport: client} }
 
-// Tokenize performs the Tokenize operation.
-func (c *Client) Tokenize(ctx context.Context, in TokenizeRequest) (TokenizeResponse, error) {
-	var o TokenizeResponse
-	err := request.JSON(ctx, c.transport, http.MethodPost, "/tokenize", "tokenize", in, &o)
-	return o, err
+// Tokenize converts text into model token IDs and optional token pieces.
+func (client *Client) Tokenize(ctx context.Context, input TokenizeRequest) (TokenizeResponse, error) {
+	var output TokenizeResponse
+	err := request.JSON(ctx, client.transport, http.MethodPost, "/tokenize", "tokenize", input, &output)
+	return output, err
 }
 
-// Detokenize performs the Detokenize operation.
-func (c *Client) Detokenize(ctx context.Context, in DetokenizeRequest) (DetokenizeResponse, error) {
-	var o DetokenizeResponse
-	err := request.JSON(ctx, c.transport, http.MethodPost, "/detokenize", "detokenize", in, &o)
-	return o, err
+// Detokenize converts model token IDs back into text and optional pieces.
+func (client *Client) Detokenize(ctx context.Context, input DetokenizeRequest) (DetokenizeResponse, error) {
+	var output DetokenizeResponse
+	err := request.JSON(ctx, client.transport, http.MethodPost, "/detokenize", "detokenize", input, &output)
+	return output, err
 }

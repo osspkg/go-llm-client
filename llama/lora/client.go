@@ -13,18 +13,18 @@ import (
 type Client struct{ transport *transport.Client }
 
 // New creates a client on shared transport.
-func New(c *transport.Client) *Client { return &Client{c} }
+func New(client *transport.Client) *Client { return &Client{transport: client} }
 
-// List performs the List operation.
-func (c *Client) List(ctx context.Context) (ListResponse, error) {
-	var o ListResponse
-	err := request.JSON(ctx, c.transport, http.MethodGet, "/lora-adapters", "lora.list", nil, &o)
-	return o, err
+// List returns all configured LoRA adapters.
+func (client *Client) List(ctx context.Context) (ListResponse, error) {
+	var output ListResponse
+	err := request.JSON(ctx, client.transport, http.MethodGet, "/lora-adapters", "lora.list", nil, &output)
+	return output, err
 }
 
-// Set performs the Set operation.
-func (c *Client) Set(ctx context.Context, in ListResponse) (ListResponse, error) {
-	var o ListResponse
-	err := request.JSON(ctx, c.transport, http.MethodPost, "/lora-adapters", "lora.set", in, &o)
-	return o, err
+// Set replaces the server's active LoRA adapter configuration.
+func (client *Client) Set(ctx context.Context, input ListResponse) (ListResponse, error) {
+	var output ListResponse
+	err := request.JSON(ctx, client.transport, http.MethodPost, "/lora-adapters", "lora.set", input, &output)
+	return output, err
 }

@@ -68,61 +68,61 @@ func TestNativeDomainRoutesAndWireShapes(t *testing.T) { //nolint:gocyclo,revive
 		t.Fatal(err)
 	}
 
-	embedding, err := client.Embeddings.Create(context.Background(), embeddings.Request{Content: []byte(`"hello"`)})
+	embedding, err := client.Embeddings().Create(context.Background(), embeddings.Request{Content: []byte(`"hello"`)})
 	if err != nil || len(embedding) != 1 || len(embedding[0].Embedding) != 1 {
 		t.Fatalf("embedding = %#v, err=%v", embedding, err)
 	}
-	tokens, err := client.Tokenization.Tokenize(context.Background(), tokenization.TokenizeRequest{Content: "hi", WithPieces: true})
+	tokens, err := client.Tokenization().Tokenize(context.Background(), tokenization.TokenizeRequest{Content: "hi", WithPieces: true})
 	if err != nil || len(tokens.Tokens) != 2 || string(tokens.Tokens[1].Piece.Bytes) != string([]byte{195, 161}) {
 		t.Fatalf("tokens = %#v, err=%v", tokens, err)
 	}
-	props, err := client.Server.Props(context.Background())
+	props, err := client.Server().Props(context.Background())
 	if err != nil || props.ModelPath != "model.gguf" || !props.Modalities.Vision {
 		t.Fatalf("props = %#v, err=%v", props, err)
 	}
-	listedSlots, err := client.Slots.List(context.Background())
+	listedSlots, err := client.Slots().List(context.Background())
 	if err != nil || len(listedSlots) != 1 || listedSlots[0].ID != 1 {
 		t.Fatalf("slots = %#v, err=%v", listedSlots, err)
 	}
-	adapters, err := client.Lora.List(context.Background())
+	adapters, err := client.LoRA().List(context.Background())
 	if err != nil || len(adapters) != 1 || adapters[0].Path != "adapter.gguf" {
 		t.Fatalf("adapters = %#v, err=%v", adapters, err)
 	}
-	modelsPage, err := client.Models.List(context.Background())
+	modelsPage, err := client.Models().List(context.Background())
 	if err != nil || len(modelsPage.Data) != 1 {
 		t.Fatalf("models = %#v, err=%v", modelsPage, err)
 	}
-	loaded, err := client.Models.Load(context.Background(), models.ModelRequest{Model: "model"})
+	loaded, err := client.Models().Load(context.Background(), models.ModelRequest{Model: "model"})
 	if err != nil || !loaded.Success {
 		t.Fatalf("load = %#v, err=%v", loaded, err)
 	}
-	if _, err := client.Server.Health(context.Background()); err != nil {
+	if _, err := client.Server().Health(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	updated, err := client.Server.UpdateProps(context.Background(), server.Props{ModelPath: "updated.gguf"})
+	updated, err := client.Server().UpdateProps(context.Background(), server.Props{ModelPath: "updated.gguf"})
 	if err != nil || updated.ModelPath != "updated.gguf" {
 		t.Fatalf("updated props = %#v, err=%v", updated, err)
 	}
-	formatted, err := client.Templates.Apply(context.Background(), templates.Request{
+	formatted, err := client.Templates().Apply(context.Background(), templates.Request{
 		Messages: []templates.Message{{Role: "user", Content: "hello"}},
 	})
 	if err != nil || formatted.Prompt != "formatted" {
 		t.Fatalf("template = %#v, err=%v", formatted, err)
 	}
-	if _, err := client.Slots.Save(context.Background(), 1, "slot.bin"); err != nil {
+	if _, err := client.Slots().Save(context.Background(), 1, "slot.bin"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := client.Slots.Restore(context.Background(), 1, "slot.bin"); err != nil {
+	if _, err := client.Slots().Restore(context.Background(), 1, "slot.bin"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := client.Slots.Erase(context.Background(), 1); err != nil {
+	if _, err := client.Slots().Erase(context.Background(), 1); err != nil {
 		t.Fatal(err)
 	}
-	metricsText, err := client.Metrics.Get(context.Background())
+	metricsText, err := client.Metrics().Get(context.Background(), "")
 	if err != nil || metricsText != "llama_prompt_tokens_total 3\n" {
 		t.Fatalf("metrics = %q, err=%v", metricsText, err)
 	}
-	ranked, err := client.Rerank.Create(context.Background(), rerank.Request{Query: "q", Documents: []string{"d"}})
+	ranked, err := client.Rerank().Create(context.Background(), rerank.Request{Query: "q", Documents: []string{"d"}})
 	if err != nil || len(ranked.Results) != 1 {
 		t.Fatalf("rerank = %#v, err=%v", ranked, err)
 	}
@@ -146,7 +146,11 @@ func TestNativeCompletionSSE(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	iterator, err := client.Completions.CreateStream(context.Background(), completions.Request{Prompt: completions.StringPrompt("hello")})
+	prompt, err := completions.StringPrompt("hello")
+	if err != nil {
+		t.Fatal(err)
+	}
+	iterator, err := client.Completions().CreateStream(context.Background(), completions.Request{Prompt: prompt})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,6 +166,27 @@ func TestNativeCompletionSSE(t *testing.T) {
 	}
 }
 
+func TestMetricsModelQueryAndSlotValidation(t *testing.T) {
+	client, err := llama.New(llama.WithHTTPClient(&http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		if got := r.URL.Query().Get("model"); got != "router-model" {
+			t.Errorf("model query = %q, want router-model", got)
+		}
+		return &http.Response{StatusCode: http.StatusOK, Header: make(http.Header), Body: io.NopCloser(strings.NewReader("metric 1\n"))}, nil
+	})}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := client.Metrics().Get(context.Background(), "router-model"); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = client.Slots().Save(context.Background(), -1, "slot.bin")
+	var validationErr *llmerrors.ValidationError
+	if !errors.As(err, &validationErr) || validationErr.Field != "id" {
+		t.Fatalf("slot validation error = %v", err)
+	}
+}
+
 func TestMissingNativeEndpointReturnsCapabilityError(t *testing.T) {
 	client, err := llama.New(llama.WithHTTPClient(&http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
 		return &http.Response{
@@ -173,7 +198,7 @@ func TestMissingNativeEndpointReturnsCapabilityError(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = client.Templates.Apply(context.Background(), templates.Request{})
+	_, err = client.Templates().Apply(context.Background(), templates.Request{})
 	var capabilityErr *llmerrors.CapabilityError
 	if !errors.As(err, &capabilityErr) || !errors.Is(err, llmerrors.ErrProtocol) {
 		t.Fatalf("error = %v", err)

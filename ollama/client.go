@@ -24,12 +24,12 @@ type config struct{ transportOptions []transport.Option }
 
 // Client is a concurrent-safe Ollama facade.
 type Client struct {
-	Generate   *generate.Client
-	Chat       *chat.Client
-	Embeddings *embeddings.Client
-	Models     *models.Client
-	Blobs      *blobs.Client
-	Version    *version.Client
+	generate   *generate.Client
+	chat       *chat.Client
+	embeddings *embeddings.Client
+	models     *models.Client
+	blobs      *blobs.Client
+	version    *version.Client
 }
 
 // New creates an Ollama client.
@@ -48,10 +48,28 @@ func New(options ...Option) (*Client, error) {
 		return nil, err
 	}
 	return &Client{
-		Generate: generate.New(client), Chat: chat.New(client),
-		Embeddings: embeddings.New(client), Models: models.New(client), Blobs: blobs.New(client), Version: version.New(client),
+		generate: generate.New(client), chat: chat.New(client),
+		embeddings: embeddings.New(client), models: models.New(client), blobs: blobs.New(client), version: version.New(client),
 	}, nil
 }
+
+// Generate returns the immutable Ollama generate domain client.
+func (client *Client) Generate() *generate.Client { return client.generate }
+
+// Chat returns the immutable Ollama chat domain client.
+func (client *Client) Chat() *chat.Client { return client.chat }
+
+// Embeddings returns the immutable Ollama embeddings domain client.
+func (client *Client) Embeddings() *embeddings.Client { return client.embeddings }
+
+// Models returns the immutable Ollama model-management domain client.
+func (client *Client) Models() *models.Client { return client.models }
+
+// Blobs returns the immutable Ollama blob domain client.
+func (client *Client) Blobs() *blobs.Client { return client.blobs }
+
+// Version returns the immutable Ollama version domain client.
+func (client *Client) Version() *version.Client { return client.version }
 
 // WithBaseURL changes the Ollama endpoint.
 func WithBaseURL(baseURL string) Option {

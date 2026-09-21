@@ -9,7 +9,11 @@ import (
 )
 
 func BenchmarkNativePromptMarshal(b *testing.B) {
-	request := completions.Request{Prompt: completions.StringPrompt("benchmark prompt"), NPredict: 32}
+	prompt, err := completions.StringPrompt("benchmark prompt")
+	if err != nil {
+		b.Fatal(err)
+	}
+	request := completions.Request{Prompt: prompt, NPredict: 32}
 	b.ReportAllocs()
 	for b.Loop() {
 		if _, err := json.Marshal(request); err != nil {

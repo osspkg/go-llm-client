@@ -13,25 +13,25 @@ import (
 type Client struct{ transport *transport.Client }
 
 // New creates a client on shared transport.
-func New(c *transport.Client) *Client { return &Client{c} }
+func New(client *transport.Client) *Client { return &Client{transport: client} }
 
-// Health performs the Health operation.
-func (c *Client) Health(ctx context.Context) (HealthResponse, error) {
-	var o HealthResponse
-	err := request.JSON(ctx, c.transport, http.MethodGet, "/health", "server.health", nil, &o)
-	return o, err
+// Health reports whether the native server is ready to accept requests.
+func (client *Client) Health(ctx context.Context) (HealthResponse, error) {
+	var output HealthResponse
+	err := request.JSON(ctx, client.transport, http.MethodGet, "/health", "server.health", nil, &output)
+	return output, err
 }
 
-// Props performs the Props operation.
-func (c *Client) Props(ctx context.Context) (Props, error) {
-	var o Props
-	err := request.JSON(ctx, c.transport, http.MethodGet, "/props", "server.props", nil, &o)
-	return o, err
+// Props returns native server properties and default generation settings.
+func (client *Client) Props(ctx context.Context) (Props, error) {
+	var output Props
+	err := request.JSON(ctx, client.transport, http.MethodGet, "/props", "server.props", nil, &output)
+	return output, err
 }
 
-// UpdateProps performs the UpdateProps operation.
-func (c *Client) UpdateProps(ctx context.Context, in Props) (Props, error) {
-	var o Props
-	err := request.JSON(ctx, c.transport, http.MethodPost, "/props", "server.props.update", in, &o)
-	return o, err
+// UpdateProps changes mutable native server properties.
+func (client *Client) UpdateProps(ctx context.Context, input Props) (Props, error) {
+	var output Props
+	err := request.JSON(ctx, client.transport, http.MethodPost, "/props", "server.props.update", input, &output)
+	return output, err
 }

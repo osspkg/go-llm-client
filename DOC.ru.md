@@ -51,12 +51,16 @@ callback также вызывается перед каждым запросо�
 ## Anthropic Messages
 
 ```go
-response, err := anthropicClient.Messages.Create(ctx, messages.Request{
+content, err := messages.TextContent("Объясни SSE одним предложением.")
+if err != nil {
+	return err
+}
+response, err := anthropicClient.Messages().Create(ctx, messages.Request{
 	Model:     "claude-3-5-sonnet-latest",
 	MaxTokens: 256,
 	Messages: []messages.Message{{
 		Role:    "user",
-		Content: messages.TextContent("Объясни SSE одним предложением."),
+		Content: content,
 	}},
 })
 ```
@@ -77,21 +81,22 @@ multipart request.
 
 ## Native llama.cpp
 
-Native-клиент предоставляет:
+Native-клиент после создания неизменяем и предоставляет доменные клиенты
+через accessors:
 
-- `Completions` для `/completion`: string, token-array, mixed и multimodal
+- `Completions()` для `/completion`: string, token-array, mixed и multimodal
   prompt, sampling settings, cache/slot/LoRA overrides, typed timings, stop
   metadata и SSE streaming;
-- `Embeddings` для `/embeddings` и singular alias `/embedding`;
-- `Tokenization` для `/tokenize` и `/detokenize`, включая union token piece в
+- `Embeddings()` для `/embeddings` и singular alias `/embedding`;
+- `Tokenization()` для `/tokenize` и `/detokenize`, включая union token piece в
   форме строки или массива байт;
-- `Templates` для `/apply-template`;
-- `Server` для `/health`, `/props` и изменения `/props`;
-- `Slots` для списка и save/restore/erase prompt cache;
-- `Lora` для списка адаптеров и изменения их scale;
-- `Metrics` для ограниченного Prometheus text response;
-- `Models` для router list, download, load, unload и model lifecycle SSE;
-- `Rerank` для native reranking endpoint.
+- `Templates()` для `/apply-template`;
+- `Server()` для `/health`, `/props` и изменения `/props`;
+- `Slots()` для списка и save/restore/erase prompt cache;
+- `LoRA()` для списка адаптеров и изменения их scale;
+- `Metrics()` для ограниченного Prometheus text response;
+- `Models()` для router list, download, load, unload и model lifecycle SSE;
+- `Rerank()` для native reranking endpoint.
 
 В конкретной сборке llama.cpp native endpoint может быть выключен или отсутствовать.
 Клиент вернёт `errors.CapabilityError`, а исходный ограниченный `HTTPError`

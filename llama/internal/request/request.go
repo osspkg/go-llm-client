@@ -23,49 +23,49 @@ const (
 	Delete = http.MethodDelete
 )
 
-// Decode performs the Decode operation.
+// Decode decodes a generated native provider model.
 func Decode[T any](data []byte) (T, error) {
-	var o T
-	target, ok := any(&o).(easyjson.Unmarshaler)
+	var output T
+	target, ok := any(&output).(easyjson.Unmarshaler)
 	if !ok {
-		return o, errors.New("model does not implement easyjson unmarshaler")
+		return output, errors.New("model does not implement easyjson unmarshaler")
 	}
 	if err := codec.Unmarshal(data, target); err != nil {
-		return o, err
+		return output, err
 	}
-	return o, nil
+	return output, nil
 }
 
-// JSON performs the JSON operation.
-func JSON(ctx context.Context, c *transport.Client, method, endpoint, operation string, input easyjson.Marshaler, output easyjson.Unmarshaler) error { //nolint:revive // low-level request metadata stays together.
-	b, err := codec.Marshal(input)
+// JSON executes a native JSON request and decodes its generated response.
+func JSON(ctx context.Context, client *transport.Client, method, endpoint, operation string, input easyjson.Marshaler, output easyjson.Unmarshaler) error { //nolint:revive // low-level request metadata stays together.
+	body, err := codec.Marshal(input)
 	if err != nil {
 		return err
 	}
-	d, err := c.Request(ctx, method, endpoint, operation, b, "application/json")
+	data, err := client.Request(ctx, method, endpoint, operation, body, "application/json")
 	if err != nil {
 		return capabilityError(err, endpoint, operation)
 	}
 	if output == nil {
 		return nil
 	}
-	if err := codec.Unmarshal(d, output); err != nil {
+	if err := codec.Unmarshal(data, output); err != nil {
 		return &llmerrors.DecodeError{Operation: operation, Cause: err}
 	}
 	return nil
 }
 
-// Stream performs the Stream operation.
-func Stream(ctx context.Context, c *transport.Client, method, endpoint, operation string, input easyjson.Marshaler, accept string) (io.ReadCloser, error) { //nolint:revive // low-level request metadata stays together.
-	b, err := codec.Marshal(input)
+// Stream opens a native SSE response stream.
+func Stream(ctx context.Context, client *transport.Client, method, endpoint, operation string, input easyjson.Marshaler, accept string) (io.ReadCloser, error) { //nolint:revive // low-level request metadata stays together.
+	body, err := codec.Marshal(input)
 	if err != nil {
 		return nil, err
 	}
-	body, err := c.Stream(ctx, method, endpoint, operation, b, "application/json", accept)
+	responseBody, err := client.Stream(ctx, method, endpoint, operation, body, "application/json", accept)
 	if err != nil {
 		return nil, capabilityError(err, endpoint, operation)
 	}
-	return body, nil
+	return responseBody, nil
 }
 
 func capabilityError(err error, endpoint, operation string) error {

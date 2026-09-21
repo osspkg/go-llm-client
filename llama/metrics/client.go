@@ -15,12 +15,12 @@ type Client struct{ transport *transport.Client }
 // New creates a metrics client on shared transport.
 func New(client *transport.Client) *Client { return &Client{transport: client} }
 
-// Get returns the bounded Prometheus exposition text. A model is optional for
-// single-model servers and required by router mode.
-func (client *Client) Get(ctx context.Context, model ...string) (string, error) {
+// Get returns the bounded Prometheus exposition text. Pass an empty model for
+// single-model servers; router mode can use the model query parameter.
+func (client *Client) Get(ctx context.Context, model string) (string, error) {
 	endpoint := "/metrics"
-	if len(model) > 0 && model[0] != "" {
-		endpoint += "?" + url.Values{"model": []string{model[0]}}.Encode()
+	if model != "" {
+		endpoint += "?" + url.Values{"model": []string{model}}.Encode()
 	}
 	data, err := client.transport.Request(ctx, http.MethodGet, endpoint, "metrics.get", nil, "")
 	if err != nil {

@@ -46,27 +46,27 @@ type config struct {
 
 // Client is a concurrent-safe facade over OpenAI bounded contexts.
 type Client struct {
-	Responses    *responses.Client
-	Chat         *chat.Client
-	Completions  *completions.Client
-	Assistants   *assistants.Client
-	Threads      *threads.Client
-	Runs         *runs.Client
-	VectorStores *vector_stores.Client
-	Containers   *containers.Client
-	Evals        *evals.Client
-	Embeddings   *embeddings.Client
-	Models       *models.Client
-	Files        *files.Client
-	Uploads      *uploads.Client
-	Batches      *batches.Client
-	FineTuning   *finetuning.Client
-	Audio        *audio.Client
-	Images       *images.Client
-	Moderations  *moderations.Client
-	Stateful     *stateful.Client
-	Organization *organization.Client
-	Realtime     *realtime.Client
+	responses    *responses.Client
+	chat         *chat.Client
+	completions  *completions.Client
+	assistants   *assistants.Client
+	threads      *threads.Client
+	runs         *runs.Client
+	vectorStores *vector_stores.Client
+	containers   *containers.Client
+	evals        *evals.Client
+	embeddings   *embeddings.Client
+	models       *models.Client
+	files        *files.Client
+	uploads      *uploads.Client
+	batches      *batches.Client
+	fineTuning   *finetuning.Client
+	audio        *audio.Client
+	images       *images.Client
+	moderations  *moderations.Client
+	stateful     *stateful.Client
+	organization *organization.Client
+	realtime     *realtime.Client
 	capabilities capability.Matrix
 }
 
@@ -96,17 +96,80 @@ func New(options ...Option) (*Client, error) {
 		return nil, err
 	}
 	return &Client{
-		Responses: responses.New(client), Chat: chat.New(client), Completions: completions.New(client),
-		Assistants: assistants.New(client), Threads: threads.New(client), Runs: runs.New(client),
-		VectorStores: vector_stores.New(client), Containers: containers.New(client), Evals: evals.New(client),
-		Embeddings: embeddings.New(client), Models: models.New(client), Files: files.New(client),
-		Uploads: uploads.New(client), Batches: batches.New(client), FineTuning: finetuning.New(client),
-		Audio: audio.New(client), Images: images.New(client),
-		Moderations: moderations.New(client), Stateful: stateful.New(client),
-		Organization: organization.New(client), Realtime: realtime.New(client),
+		responses: responses.New(client), chat: chat.New(client), completions: completions.New(client),
+		assistants: assistants.New(client), threads: threads.New(client), runs: runs.New(client),
+		vectorStores: vector_stores.New(client), containers: containers.New(client), evals: evals.New(client),
+		embeddings: embeddings.New(client), models: models.New(client), files: files.New(client),
+		uploads: uploads.New(client), batches: batches.New(client), fineTuning: finetuning.New(client),
+		audio: audio.New(client), images: images.New(client),
+		moderations: moderations.New(client), stateful: stateful.New(client),
+		organization: organization.New(client), realtime: realtime.New(client),
 		capabilities: configuration.capabilities.Clone(),
 	}, nil
 }
+
+// Responses returns the immutable Responses domain client.
+func (client *Client) Responses() *responses.Client { return client.responses }
+
+// Chat returns the immutable Chat Completions domain client.
+func (client *Client) Chat() *chat.Client { return client.chat }
+
+// Completions returns the immutable legacy Completions domain client.
+func (client *Client) Completions() *completions.Client { return client.completions }
+
+// Assistants returns the immutable Assistants domain client.
+func (client *Client) Assistants() *assistants.Client { return client.assistants }
+
+// Threads returns the immutable Threads domain client.
+func (client *Client) Threads() *threads.Client { return client.threads }
+
+// Runs returns the immutable Runs domain client.
+func (client *Client) Runs() *runs.Client { return client.runs }
+
+// VectorStores returns the immutable Vector Stores domain client.
+func (client *Client) VectorStores() *vector_stores.Client { return client.vectorStores }
+
+// Containers returns the immutable Containers domain client.
+func (client *Client) Containers() *containers.Client { return client.containers }
+
+// Evals returns the immutable Evals domain client.
+func (client *Client) Evals() *evals.Client { return client.evals }
+
+// Embeddings returns the immutable Embeddings domain client.
+func (client *Client) Embeddings() *embeddings.Client { return client.embeddings }
+
+// Models returns the immutable Models domain client.
+func (client *Client) Models() *models.Client { return client.models }
+
+// Files returns the immutable Files domain client.
+func (client *Client) Files() *files.Client { return client.files }
+
+// Uploads returns the immutable Uploads domain client.
+func (client *Client) Uploads() *uploads.Client { return client.uploads }
+
+// Batches returns the immutable Batches domain client.
+func (client *Client) Batches() *batches.Client { return client.batches }
+
+// FineTuning returns the immutable Fine-Tuning domain client.
+func (client *Client) FineTuning() *finetuning.Client { return client.fineTuning }
+
+// Audio returns the immutable Audio domain client.
+func (client *Client) Audio() *audio.Client { return client.audio }
+
+// Images returns the immutable Images domain client.
+func (client *Client) Images() *images.Client { return client.images }
+
+// Moderations returns the immutable Moderations domain client.
+func (client *Client) Moderations() *moderations.Client { return client.moderations }
+
+// Stateful returns the immutable stateful-resource domain client.
+func (client *Client) Stateful() *stateful.Client { return client.stateful }
+
+// Organization returns the immutable Organization and Admin domain client.
+func (client *Client) Organization() *organization.Client { return client.organization }
+
+// Realtime returns the immutable Realtime WebSocket domain client.
+func (client *Client) Realtime() *realtime.Client { return client.realtime }
 
 // WithBaseURL changes the provider endpoint, including for OpenAI-compatible services.
 func WithBaseURL(baseURL string) Option {

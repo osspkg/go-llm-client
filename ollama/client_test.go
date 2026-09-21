@@ -40,7 +40,7 @@ func TestChatAndGenerateStreamsUseNDJSON(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	response, err := client.Chat.Create(context.Background(), chat.Request{Model: "llama-test"})
+	response, err := client.Chat().Create(context.Background(), chat.Request{Model: "llama-test"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +48,7 @@ func TestChatAndGenerateStreamsUseNDJSON(t *testing.T) {
 		t.Fatalf("chat response = %#v", response)
 	}
 
-	iterator, err := client.Generate.CreateStream(context.Background(), generate.Request{Model: "llama-test"})
+	iterator, err := client.Generate().CreateStream(context.Background(), generate.Request{Model: "llama-test"})
 	if err != nil {
 		t.Fatal(err)
 	}

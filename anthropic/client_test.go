@@ -33,7 +33,11 @@ func TestClientAddsAnthropicHeadersAndCallsMessages(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	response, err := client.Messages.Create(context.Background(), messages.Request{Model: "claude", MaxTokens: 16, Messages: []messages.Message{{Role: "user", Content: messages.TextContent("hello")}}})
+	content, err := messages.TextContent("hello")
+	if err != nil {
+		t.Fatal(err)
+	}
+	response, err := client.Messages().Create(context.Background(), messages.Request{Model: "claude", MaxTokens: 16, Messages: []messages.Message{{Role: "user", Content: content}}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,7 +61,7 @@ func TestAnthropicAuthReceivesDestinationDomain(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := client.Messages.CountTokens(context.Background(), messages.CountTokensRequest{Model: "claude"}); err != nil {
+	if _, err := client.Messages().CountTokens(context.Background(), messages.CountTokensRequest{Model: "claude"}); err != nil {
 		t.Fatal(err)
 	}
 	if got.Domain != "anthropic.example.test" {
@@ -89,7 +93,7 @@ func TestAnthropicMessageStreamAndBatchResults(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	iterator, err := client.Messages.CreateStream(context.Background(), messages.Request{Model: "claude", MaxTokens: 8})
+	iterator, err := client.Messages().CreateStream(context.Background(), messages.Request{Model: "claude", MaxTokens: 8})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,7 +122,7 @@ func TestAnthropicMessageStreamAndBatchResults(t *testing.T) {
 	if next || iterator.Err() != nil {
 		t.Fatalf("stream terminal state: next=%v err=%v", next, iterator.Err())
 	}
-	results, err := client.Batches.Results(context.Background(), "batch_1")
+	results, err := client.Batches().Results(context.Background(), "batch_1")
 	if err != nil {
 		t.Fatal(err)
 	}

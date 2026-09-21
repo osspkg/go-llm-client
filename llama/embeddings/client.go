@@ -13,18 +13,18 @@ import (
 type Client struct{ transport *transport.Client }
 
 // New creates a client on shared transport.
-func New(c *transport.Client) *Client { return &Client{c} }
+func New(client *transport.Client) *Client { return &Client{transport: client} }
 
-// Create performs the Create operation.
-func (c *Client) Create(ctx context.Context, in Request) (Response, error) {
-	var o Response
-	err := request.JSON(ctx, c.transport, http.MethodPost, "/embeddings", "embeddings.create", in, &o)
-	return o, err
+// Create requests pooled or token-level embeddings.
+func (client *Client) Create(ctx context.Context, input Request) (Response, error) {
+	var output Response
+	err := request.JSON(ctx, client.transport, http.MethodPost, "/embeddings", "embeddings.create", input, &output)
+	return output, err
 }
 
 // CreateSingle creates an embedding through the singular native alias.
-func (c *Client) CreateSingle(ctx context.Context, in Request) (Response, error) {
+func (client *Client) CreateSingle(ctx context.Context, input Request) (Response, error) {
 	var output Response
-	err := request.JSON(ctx, c.transport, http.MethodPost, "/embedding", "embeddings.create_single", in, &output)
+	err := request.JSON(ctx, client.transport, http.MethodPost, "/embedding", "embeddings.create_single", input, &output)
 	return output, err
 }

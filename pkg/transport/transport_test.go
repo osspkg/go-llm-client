@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"strings"
 	"testing"
@@ -138,4 +139,37 @@ func TestBaseURLRejectsCredentialsAndNonHTTPSchemes(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMultipartBodyWaitsForWriterAndReportsWriterError(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		body, contentType := transport.NewMultipartBody(func(writer *multipart.Writer) error {
+			return writer.WriteField("name", "value")
+		})
+		if contentType == "" {
+			t.Fatal("content type is empty")
+		}
+		data, err := io.ReadAll(body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := body.Close(); err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(string(data), "name") || !strings.Contains(string(data), "value") {
+			t.Fatalf("multipart body = %q", data)
+		}
+	})
+
+	t.Run("writer error", func(t *testing.T) {
+		wantErr := errors.New("source failed")
+		body, _ := transport.NewMultipartBody(func(*multipart.Writer) error { return wantErr })
+		_, readErr := io.ReadAll(body)
+		if !errors.Is(readErr, wantErr) {
+			t.Fatalf("read error = %v, want %v", readErr, wantErr)
+		}
+		if closeErr := body.Close(); !errors.Is(closeErr, wantErr) {
+			t.Fatalf("close error = %v, want %v", closeErr, wantErr)
+		}
+	})
 }

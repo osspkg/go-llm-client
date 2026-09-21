@@ -22,12 +22,12 @@ type (
 	config struct{ transportOptions []transport.Option }
 )
 
-// Client describes the Client API value.
+// Client is a concurrent-safe facade over Anthropic bounded contexts.
 type Client struct {
-	Messages *messages.Client
-	Models   *models.Client
-	Files    *files.Client
-	Batches  *batches.Client
+	messages *messages.Client
+	models   *models.Client
+	files    *files.Client
+	batches  *batches.Client
 }
 
 // New creates a client on shared transport.
@@ -45,10 +45,22 @@ func New(options ...Option) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Client{Messages: messages.New(t), Models: models.New(t), Files: files.New(t), Batches: batches.New(t)}, nil
+	return &Client{messages: messages.New(t), models: models.New(t), files: files.New(t), batches: batches.New(t)}, nil
 }
 
-// WithBaseURL performs the WithBaseURL operation.
+// Messages returns the immutable Anthropic Messages domain client.
+func (client *Client) Messages() *messages.Client { return client.messages }
+
+// Models returns the immutable Anthropic Models domain client.
+func (client *Client) Models() *models.Client { return client.models }
+
+// Files returns the immutable Anthropic Files domain client.
+func (client *Client) Files() *files.Client { return client.files }
+
+// Batches returns the immutable Anthropic Message Batches domain client.
+func (client *Client) Batches() *batches.Client { return client.batches }
+
+// WithBaseURL changes the Anthropic endpoint, including for compatible servers.
 func WithBaseURL(baseURL string) Option {
 	return func(c *config) error {
 		c.transportOptions = append(c.transportOptions, transport.WithBaseURL(baseURL))
@@ -56,7 +68,7 @@ func WithBaseURL(baseURL string) Option {
 	}
 }
 
-// WithHTTPClient performs the WithHTTPClient operation.
+// WithHTTPClient supplies a custom HTTP client, normally for tests.
 func WithHTTPClient(client *http.Client) Option {
 	return func(c *config) error {
 		c.transportOptions = append(c.transportOptions, transport.WithHTTPClient(client))
@@ -64,7 +76,7 @@ func WithHTTPClient(client *http.Client) Option {
 	}
 }
 
-// WithAuthProvider performs the WithAuthProvider operation.
+// WithAuthProvider configures per-request authentication headers.
 func WithAuthProvider(provider auth.HeaderProvider) Option {
 	return func(c *config) error {
 		c.transportOptions = append(c.transportOptions, transport.WithAuthProvider(provider))
@@ -94,7 +106,7 @@ func WithBearerToken(token string) Option {
 	})
 }
 
-// WithVersion performs the WithVersion operation.
+// WithVersion sets the Anthropic API version header.
 func WithVersion(version string) Option {
 	return func(c *config) error {
 		c.transportOptions = append(c.transportOptions, transport.WithHeader("anthropic-version", version))
@@ -102,7 +114,7 @@ func WithVersion(version string) Option {
 	}
 }
 
-// WithWorkspace performs the WithWorkspace operation.
+// WithWorkspace sets the Anthropic workspace header.
 func WithWorkspace(id string) Option {
 	return func(c *config) error {
 		c.transportOptions = append(c.transportOptions, transport.WithHeader("anthropic-workspace-id", id))
@@ -110,7 +122,7 @@ func WithWorkspace(id string) Option {
 	}
 }
 
-// WithBeta performs the WithBeta operation.
+// WithBeta enables an Anthropic beta feature header.
 func WithBeta(value string) Option {
 	return func(c *config) error {
 		c.transportOptions = append(c.transportOptions, transport.WithHeader("anthropic-beta", value))
@@ -118,7 +130,7 @@ func WithBeta(value string) Option {
 	}
 }
 
-// WithRequestTimeout performs the WithRequestTimeout operation.
+// WithRequestTimeout sets the default non-stream request timeout.
 func WithRequestTimeout(value time.Duration) Option {
 	return func(c *config) error {
 		c.transportOptions = append(c.transportOptions, transport.WithRequestTimeout(value))
@@ -126,7 +138,7 @@ func WithRequestTimeout(value time.Duration) Option {
 	}
 }
 
-// WithStreamTimeout performs the WithStreamTimeout operation.
+// WithStreamTimeout sets an optional total stream timeout.
 func WithStreamTimeout(value time.Duration) Option {
 	return func(c *config) error {
 		c.transportOptions = append(c.transportOptions, transport.WithStreamTimeout(value))

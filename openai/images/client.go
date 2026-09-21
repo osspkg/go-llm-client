@@ -4,7 +4,6 @@ package images
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"mime/multipart"
 	"strconv"
@@ -44,9 +43,13 @@ func (client *Client) Edit(ctx context.Context, input EditInput) (Response, erro
 	if err != nil {
 		return output, err
 	}
-	data, err := request.Reader(ctx, client.transport, request.Post, "/images/edits", "images.edit", body, contentType)
-	if err != nil {
-		return output, err
+	data, requestErr := request.Reader(ctx, client.transport, request.Post, "/images/edits", "images.edit", body, contentType)
+	bodyErr := body.Close()
+	if requestErr != nil {
+		return output, requestErr
+	}
+	if bodyErr != nil {
+		return output, bodyErr
 	}
 	return request.Decode[Response](data)
 }
@@ -59,8 +62,13 @@ func (client *Client) EditStream(ctx context.Context, input EditInput) (stream.I
 		return nil, err
 	}
 	streamBody, err := request.StreamReader(ctx, client.transport, request.Post, "/images/edits", "images.edit_stream", body, contentType, "text/event-stream")
+	bodyErr := body.Close()
 	if err != nil {
 		return nil, err
+	}
+	if bodyErr != nil {
+		_ = streamBody.Close()
+		return nil, bodyErr
 	}
 	return stream.NewSSE(streamBody, request.Decode[StreamEvent], 0), nil
 }
@@ -72,14 +80,18 @@ func (client *Client) Variation(ctx context.Context, input VariationInput) (Resp
 	if err != nil {
 		return output, err
 	}
-	data, err := request.Reader(ctx, client.transport, request.Post, "/images/variations", "images.variation", body, contentType)
-	if err != nil {
-		return output, err
+	data, requestErr := request.Reader(ctx, client.transport, request.Post, "/images/variations", "images.variation", body, contentType)
+	bodyErr := body.Close()
+	if requestErr != nil {
+		return output, requestErr
+	}
+	if bodyErr != nil {
+		return output, bodyErr
 	}
 	return request.Decode[Response](data)
 }
 
-func editBody(input EditInput) (io.ReadCloser, string, error) {
+func editBody(input EditInput) (*transport.MultipartBody, string, error) {
 	if input.Filename == "" || input.Image == nil || input.Prompt == "" {
 		return nil, "", errors.New("filename, image, and prompt are required")
 	}
@@ -109,7 +121,7 @@ func editBody(input EditInput) (io.ReadCloser, string, error) {
 	}, "image", "mask")
 }
 
-func variationBody(input VariationInput) (io.ReadCloser, string, error) {
+func variationBody(input VariationInput) (*transport.MultipartBody, string, error) {
 	if input.Filename == "" || input.Image == nil {
 		return nil, "", errors.New("filename and image are required")
 	}
@@ -131,33 +143,27 @@ func variationBody(input VariationInput) (io.ReadCloser, string, error) {
 	}, "image", "")
 }
 
-func multipartBody(filename string, image io.Reader, mask io.Reader, fields func(*multipart.Writer) error, imageField, maskField string) (io.ReadCloser, string, error) { //nolint:revive // multipart field parameters describe the wire contract.
-	reader, pipeWriter := io.Pipe()
-	multipartWriter := multipart.NewWriter(pipeWriter)
-	go func() {
-		err := fields(multipartWriter)
-		if err == nil {
-			var part io.Writer
-			part, err = multipartWriter.CreateFormFile(imageField, filename)
-			if err == nil {
-				_, err = io.Copy(part, image)
-			}
+func multipartBody(filename string, image io.Reader, mask io.Reader, fields func(*multipart.Writer) error, imageField, maskField string) (*transport.MultipartBody, string, error) { //nolint:revive // multipart field parameters describe the wire contract.
+	body, contentType := transport.NewMultipartBody(func(multipartWriter *multipart.Writer) error {
+		if err := fields(multipartWriter); err != nil {
+			return err
 		}
-		if err == nil && mask != nil {
-			var part io.Writer
-			part, err = multipartWriter.CreateFormFile(maskField, "mask.png")
-			if err == nil {
-				_, err = io.Copy(part, mask)
-			}
-		}
-		if err == nil {
-			err = multipartWriter.Close()
-		}
+		part, err := multipartWriter.CreateFormFile(imageField, filename)
 		if err != nil {
-			_ = pipeWriter.CloseWithError(fmt.Errorf("write image multipart: %w", err))
-			return
+			return err
 		}
-		_ = pipeWriter.Close()
-	}()
-	return reader, multipartWriter.FormDataContentType(), nil
+		if _, err := io.Copy(part, image); err != nil {
+			return err
+		}
+		if mask == nil {
+			return nil
+		}
+		part, err = multipartWriter.CreateFormFile(maskField, "mask.png")
+		if err != nil {
+			return err
+		}
+		_, err = io.Copy(part, mask)
+		return err
+	})
+	return body, contentType, nil
 }

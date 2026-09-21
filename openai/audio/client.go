@@ -4,7 +4,6 @@ package audio
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -36,9 +35,13 @@ func (client *Client) Transcribe(ctx context.Context, input TranscriptionInput) 
 	if err != nil {
 		return output, err
 	}
-	data, err := request.Reader(ctx, client.transport, http.MethodPost, "/audio/transcriptions", "audio.transcriptions", body, contentType)
-	if err != nil {
-		return output, err
+	data, requestErr := request.Reader(ctx, client.transport, http.MethodPost, "/audio/transcriptions", "audio.transcriptions", body, contentType)
+	bodyErr := body.Close()
+	if requestErr != nil {
+		return output, requestErr
+	}
+	if bodyErr != nil {
+		return output, bodyErr
 	}
 	return request.Decode[Transcription](data)
 }
@@ -50,9 +53,13 @@ func (client *Client) Translate(ctx context.Context, input TranscriptionInput) (
 	if err != nil {
 		return output, err
 	}
-	data, err := request.Reader(ctx, client.transport, http.MethodPost, "/audio/translations", "audio.translations", body, contentType)
-	if err != nil {
-		return output, err
+	data, requestErr := request.Reader(ctx, client.transport, http.MethodPost, "/audio/translations", "audio.translations", body, contentType)
+	bodyErr := body.Close()
+	if requestErr != nil {
+		return output, requestErr
+	}
+	if bodyErr != nil {
+		return output, bodyErr
 	}
 	return request.Decode[Translation](data)
 }
@@ -73,9 +80,13 @@ func (client *Client) CreateVoiceConsent(ctx context.Context, input VoiceConsent
 	if err != nil {
 		return output, err
 	}
-	data, err := request.Reader(ctx, client.transport, request.Post, "/audio/voice_consents", "audio.voice_consents.create", body, contentType)
-	if err != nil {
-		return output, err
+	data, requestErr := request.Reader(ctx, client.transport, request.Post, "/audio/voice_consents", "audio.voice_consents.create", body, contentType)
+	bodyErr := body.Close()
+	if requestErr != nil {
+		return output, requestErr
+	}
+	if bodyErr != nil {
+		return output, bodyErr
 	}
 	return request.Decode[VoiceConsent](data)
 }
@@ -115,44 +126,41 @@ func (client *Client) CreateVoice(ctx context.Context, input VoiceInput) (Voice,
 	if err != nil {
 		return output, err
 	}
-	data, err := request.Reader(ctx, client.transport, request.Post, "/audio/voices", "audio.voices.create", body, contentType)
-	if err != nil {
-		return output, err
+	data, requestErr := request.Reader(ctx, client.transport, request.Post, "/audio/voices", "audio.voices.create", body, contentType)
+	bodyErr := body.Close()
+	if requestErr != nil {
+		return output, requestErr
+	}
+	if bodyErr != nil {
+		return output, bodyErr
 	}
 	return request.Decode[Voice](data)
 }
 
-func multipartBody(model, fileName string, file io.Reader, language string) (io.ReadCloser, string, error) {
+func multipartBody(model, fileName string, file io.Reader, language string) (*transport.MultipartBody, string, error) {
 	if model == "" || fileName == "" || file == nil {
 		return nil, "", errors.New("model, file name, and file are required")
 	}
-	reader, pipeWriter := io.Pipe()
-	multipartWriter := multipart.NewWriter(pipeWriter)
-	go func() {
-		err := multipartWriter.WriteField("model", model)
-		if err == nil && language != "" {
-			err = multipartWriter.WriteField("language", language)
+	body, contentType := transport.NewMultipartBody(func(multipartWriter *multipart.Writer) error {
+		if err := multipartWriter.WriteField("model", model); err != nil {
+			return err
 		}
-		if err == nil {
-			var part io.Writer
-			part, err = multipartWriter.CreateFormFile("file", fileName)
-			if err == nil {
-				_, err = io.Copy(part, file)
+		if language != "" {
+			if err := multipartWriter.WriteField("language", language); err != nil {
+				return err
 			}
 		}
-		if err == nil {
-			err = multipartWriter.Close()
-		}
+		part, err := multipartWriter.CreateFormFile("file", fileName)
 		if err != nil {
-			_ = pipeWriter.CloseWithError(fmt.Errorf("write audio multipart: %w", err))
-			return
+			return err
 		}
-		_ = pipeWriter.Close()
-	}()
-	return reader, multipartWriter.FormDataContentType(), nil
+		_, err = io.Copy(part, file)
+		return err
+	})
+	return body, contentType, nil
 }
 
-func voiceConsentBody(input VoiceConsentInput) (io.ReadCloser, string, error) {
+func voiceConsentBody(input VoiceConsentInput) (*transport.MultipartBody, string, error) {
 	if input.Name == "" || input.Language == "" || input.Filename == "" || input.Recording == nil {
 		return nil, "", errors.New("name, language, filename, and recording are required")
 	}
@@ -164,7 +172,7 @@ func voiceConsentBody(input VoiceConsentInput) (io.ReadCloser, string, error) {
 	})
 }
 
-func voiceBody(input VoiceInput) (io.ReadCloser, string, error) {
+func voiceBody(input VoiceInput) (*transport.MultipartBody, string, error) {
 	if input.Name == "" || input.ConsentID == "" || input.Filename == "" || input.AudioSample == nil {
 		return nil, "", errors.New("name, consent id, filename, and audio sample are required")
 	}
@@ -176,26 +184,17 @@ func voiceBody(input VoiceInput) (io.ReadCloser, string, error) {
 	})
 }
 
-func multipartFileBody(field, filename string, file io.Reader, fields func(*multipart.Writer) error) (io.ReadCloser, string, error) {
-	reader, pipeWriter := io.Pipe()
-	multipartWriter := multipart.NewWriter(pipeWriter)
-	go func() {
-		err := fields(multipartWriter)
-		if err == nil {
-			var part io.Writer
-			part, err = multipartWriter.CreateFormFile(field, filename)
-			if err == nil {
-				_, err = io.Copy(part, file)
-			}
+func multipartFileBody(field, filename string, file io.Reader, fields func(*multipart.Writer) error) (*transport.MultipartBody, string, error) {
+	body, contentType := transport.NewMultipartBody(func(multipartWriter *multipart.Writer) error {
+		if err := fields(multipartWriter); err != nil {
+			return err
 		}
-		if err == nil {
-			err = multipartWriter.Close()
-		}
+		part, err := multipartWriter.CreateFormFile(field, filename)
 		if err != nil {
-			_ = pipeWriter.CloseWithError(fmt.Errorf("write audio multipart: %w", err))
-			return
+			return err
 		}
-		_ = pipeWriter.Close()
-	}()
-	return reader, multipartWriter.FormDataContentType(), nil
+		_, err = io.Copy(part, file)
+		return err
+	})
+	return body, contentType, nil
 }

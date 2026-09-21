@@ -25,7 +25,7 @@ func TestNativeCompletionUsesNativeRoute(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	response, err := client.Completions.Create(context.Background(), completions.Request{Prompt: []byte(`"hello"`)})
+	response, err := client.Completions().Create(context.Background(), completions.Request{Prompt: []byte(`"hello"`)})
 	if err != nil {
 		t.Fatal(err)
 	}

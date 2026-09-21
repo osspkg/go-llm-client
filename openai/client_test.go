@@ -56,7 +56,7 @@ func TestChatAndResponsesStreamsUseTypedTransport(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	response, err := client.Chat.Create(context.Background(), chat.Request{Model: "test-model"})
+	response, err := client.Chat().Create(context.Background(), chat.Request{Model: "test-model"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +64,7 @@ func TestChatAndResponsesStreamsUseTypedTransport(t *testing.T) {
 		t.Fatalf("response = %#v", response)
 	}
 
-	iterator, err := client.Responses.CreateStream(context.Background(), responses.Request{Model: "test-model"})
+	iterator, err := client.Responses().CreateStream(context.Background(), responses.Request{Model: "test-model"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,7 +91,7 @@ func TestDisabledCapabilityStopsBeforeTransport(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = client.Chat.Create(context.Background(), chat.Request{Model: "test-model"})
+	_, err = client.Chat().Create(context.Background(), chat.Request{Model: "test-model"})
 	if !errors.Is(err, llmerrors.ErrInvalidRequest) {
 		t.Fatalf("error = %v", err)
 	}
@@ -152,31 +152,31 @@ func TestStoredResourceOperationsUseExpectedRoutes(t *testing.T) {
 		t.Fatal(err)
 	}
 	ctx := context.Background()
-	if _, err := client.Chat.Get(ctx, "chat_123"); err != nil {
+	if _, err := client.Chat().Get(ctx, "chat_123"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := client.Chat.Update(ctx, "chat_123", chat.UpdateRequest{Metadata: map[string]string{"key": "value"}}); err != nil {
+	if _, err := client.Chat().Update(ctx, "chat_123", chat.UpdateRequest{Metadata: map[string]string{"key": "value"}}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := client.Chat.Delete(ctx, "chat_123"); err != nil {
+	if _, err := client.Chat().Delete(ctx, "chat_123"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := client.Chat.Messages(ctx, "chat_123"); err != nil {
+	if _, err := client.Chat().Messages(ctx, "chat_123"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := client.Responses.Get(ctx, "resp_123"); err != nil {
+	if _, err := client.Responses().Get(ctx, "resp_123"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := client.Responses.Delete(ctx, "resp_123"); err != nil {
+	if _, err := client.Responses().Delete(ctx, "resp_123"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := client.Responses.Cancel(ctx, "resp_123"); err != nil {
+	if _, err := client.Responses().Cancel(ctx, "resp_123"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := client.Responses.InputItems(ctx, "resp_123"); err != nil {
+	if _, err := client.Responses().InputItems(ctx, "resp_123"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := client.Batches.List(ctx); err != nil {
+	if _, err := client.Batches().List(ctx); err != nil {
 		t.Fatal(err)
 	}
 	if index != len(expected) {

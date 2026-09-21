@@ -13,5 +13,5 @@ func ExampleNew() {
 	if err != nil {
 		return
 	}
-	_, _ = client.Chat.Create(context.Background(), chat.Request{Model: "model"})
+	_, _ = client.Chat().Create(context.Background(), chat.Request{Model: "model"})
 }

@@ -4,7 +4,6 @@ package uploads
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -41,9 +40,13 @@ func (client *Client) AddPart(ctx context.Context, id string, input PartInput) (
 	if err != nil {
 		return output, err
 	}
-	data, err := request.Reader(ctx, client.transport, http.MethodPost, "/uploads/"+url.PathEscape(id)+"/parts", "uploads.add_part", body, contentType)
-	if err != nil {
-		return output, err
+	data, requestErr := request.Reader(ctx, client.transport, http.MethodPost, "/uploads/"+url.PathEscape(id)+"/parts", "uploads.add_part", body, contentType)
+	bodyErr := body.Close()
+	if requestErr != nil {
+		return output, requestErr
+	}
+	if bodyErr != nil {
+		return output, bodyErr
 	}
 	return request.Decode[Part](data)
 }
@@ -62,25 +65,17 @@ func (client *Client) Cancel(ctx context.Context, id string) (DeleteResponse, er
 	return output, err
 }
 
-func multipartReader(input PartInput) (io.ReadCloser, string, error) {
+func multipartReader(input PartInput) (*transport.MultipartBody, string, error) {
 	if input.Filename == "" || input.File == nil {
 		return nil, "", errors.New("filename and file are required")
 	}
-	reader, writer := io.Pipe()
-	multipartWriter := multipart.NewWriter(writer)
-	go func() {
+	body, contentType := transport.NewMultipartBody(func(multipartWriter *multipart.Writer) error {
 		part, err := multipartWriter.CreateFormFile("data", input.Filename)
-		if err == nil {
-			_, err = io.Copy(part, input.File)
-		}
-		if err == nil {
-			err = multipartWriter.Close()
-		}
 		if err != nil {
-			_ = writer.CloseWithError(fmt.Errorf("write upload part: %w", err))
-			return
+			return err
 		}
-		_ = writer.Close()
-	}()
-	return reader, multipartWriter.FormDataContentType(), nil
+		_, err = io.Copy(part, input.File)
+		return err
+	})
+	return body, contentType, nil
 }

@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/mailru/easyjson/jlexer"
 	"github.com/mailru/easyjson/jwriter"
@@ -53,27 +54,29 @@ type Message struct {
 }
 
 // Content is the Anthropic string-or-content-block-array union.
-// Use TextContent or BlocksContent to construct it.
+// Use TextContent or BlocksContent to construct it; both validate and return
+// any JSON encoding error to the caller.
 //
 //easyjson:skip
 type Content []byte
 
-// TextContent creates a text message or system prompt.
-func TextContent(text string) Content {
+// TextContent creates a text message or system prompt and returns any JSON encoding error.
+func TextContent(text string) (Content, error) {
 	data, err := json.Marshal(text)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("marshal anthropic text content: %w", err)
 	}
-	return Content(data)
+	return Content(data), nil
 }
 
-// BlocksContent creates a content value from typed content blocks.
-func BlocksContent(blocks ...ContentBlock) Content {
+// BlocksContent creates a content value from typed content blocks and validates
+// schema-defined raw JSON fields.
+func BlocksContent(blocks ...ContentBlock) (Content, error) {
 	data, err := json.Marshal(blocks)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("marshal anthropic content blocks: %w", err)
 	}
-	return Content(data)
+	return Content(data), nil
 }
 
 // MarshalJSON validates and returns the content union unchanged.
@@ -95,14 +98,22 @@ func (content *Content) UnmarshalJSON(data []byte) error {
 	}
 	var text string
 	if err := json.Unmarshal(data, &text); err == nil {
-		*content = TextContent(text)
+		value, marshalErr := TextContent(text)
+		if marshalErr != nil {
+			return marshalErr
+		}
+		*content = value
 		return nil
 	}
 	var blocks []ContentBlock
 	if err := json.Unmarshal(data, &blocks); err != nil {
 		return errors.New("anthropic content must be a string or content block array")
 	}
-	*content = BlocksContent(blocks...)
+	value, err := BlocksContent(blocks...)
+	if err != nil {
+		return err
+	}
+	*content = value
 	return nil
 }
 
@@ -170,21 +181,21 @@ type ContentBlock struct {
 func TextBlockValue(text string) ContentBlock { return ContentBlock{Type: "text", Text: text} }
 
 // ImageBlockValue creates an image content block from a typed source.
-func ImageBlockValue(source ImageSource) ContentBlock {
+func ImageBlockValue(source ImageSource) (ContentBlock, error) {
 	data, err := json.Marshal(source)
 	if err != nil {
-		return ContentBlock{Type: "image"}
+		return ContentBlock{}, fmt.Errorf("marshal anthropic image source: %w", err)
 	}
-	return ContentBlock{Type: "image", Source: data}
+	return ContentBlock{Type: "image", Source: data}, nil
 }
 
 // DocumentBlockValue creates a document content block from a typed source.
-func DocumentBlockValue(source DocumentSource) ContentBlock {
+func DocumentBlockValue(source DocumentSource) (ContentBlock, error) {
 	data, err := json.Marshal(source)
 	if err != nil {
-		return ContentBlock{Type: "document"}
+		return ContentBlock{}, fmt.Errorf("marshal anthropic document source: %w", err)
 	}
-	return ContentBlock{Type: "document", Source: data}
+	return ContentBlock{Type: "document", Source: data}, nil
 }
 
 // ThinkingBlockValue creates a thinking content block.
@@ -225,13 +236,19 @@ func (block ContentBlock) DecodeToolResultContent() (Content, error) {
 }
 
 // ToolUseBlockValue creates a tool-use content block.
-func ToolUseBlockValue(id, name string, input json.RawMessage) ContentBlock {
-	return ContentBlock{Type: "tool_use", ID: id, Name: name, Input: input}
+func ToolUseBlockValue(id, name string, input json.RawMessage) (ContentBlock, error) {
+	if len(input) > 0 && !json.Valid(input) {
+		return ContentBlock{}, errors.New("invalid anthropic tool-use input JSON")
+	}
+	return ContentBlock{Type: "tool_use", ID: id, Name: name, Input: input}, nil
 }
 
 // ToolResultBlockValue creates a tool-result content block.
-func ToolResultBlockValue(toolUseID string, content json.RawMessage, isError bool) ContentBlock {
-	return ContentBlock{Type: "tool_result", ToolUseID: toolUseID, Content: content, IsError: isError}
+func ToolResultBlockValue(toolUseID string, content json.RawMessage, isError bool) (ContentBlock, error) {
+	if len(content) > 0 && !json.Valid(content) {
+		return ContentBlock{}, errors.New("invalid anthropic tool-result content JSON")
+	}
+	return ContentBlock{Type: "tool_result", ToolUseID: toolUseID, Content: content, IsError: isError}, nil
 }
 
 // TextBlock contains generated or supplied text content.

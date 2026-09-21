@@ -64,36 +64,32 @@ func (client *Client) Content(ctx context.Context, id string) (io.ReadCloser, er
 }
 
 // Upload performs the Upload operation.
-func (client *Client) Upload(ctx context.Context, filename, mediaType string, body io.Reader) (File, error) {
-	if strings.TrimSpace(filename) == "" || strings.ContainsAny(filename, "\r\n\"") || strings.ContainsAny(mediaType, "\r\n") || body == nil {
+func (client *Client) Upload(ctx context.Context, filename, mediaType string, file io.Reader) (File, error) {
+	if strings.TrimSpace(filename) == "" || strings.ContainsAny(filename, "\r\n\"") || strings.ContainsAny(mediaType, "\r\n") || file == nil {
 		return File{}, fmt.Errorf("%w: invalid multipart upload", llmerrors.ErrInvalidRequest)
 	}
-	reader, writer := io.Pipe()
-	multipartWriter := multipart.NewWriter(writer)
-	go func() {
-		defer func() { _ = writer.Close() }()
+	multipartBody, contentType := transport.NewMultipartBody(func(multipartWriter *multipart.Writer) error {
 		header := make(textproto.MIMEHeader)
 		header.Set("Content-Disposition", `form-data; name="file"; filename="`+filename+`"`)
 		if mediaType != "" {
 			header.Set("Content-Type", mediaType)
 		}
 		part, err := multipartWriter.CreatePart(header)
-		if err == nil {
-			_, err = io.Copy(part, body)
-		}
-		if err == nil {
-			err = multipartWriter.WriteField("purpose", "user_data")
-		}
-		if err == nil {
-			err = multipartWriter.Close()
-		}
 		if err != nil {
-			_ = writer.CloseWithError(err)
+			return err
 		}
-	}()
-	data, err := client.transport.RequestReader(ctx, http.MethodPost, "/files", "files.upload", reader, multipartWriter.FormDataContentType())
-	if err != nil {
-		return File{}, err
+		if _, err := io.Copy(part, file); err != nil {
+			return err
+		}
+		return multipartWriter.WriteField("purpose", "user_data")
+	})
+	data, requestErr := client.transport.RequestReader(ctx, http.MethodPost, "/files", "files.upload", multipartBody, contentType)
+	bodyErr := multipartBody.Close()
+	if requestErr != nil {
+		return File{}, requestErr
+	}
+	if bodyErr != nil {
+		return File{}, bodyErr
 	}
 	return request.Decode[File](data)
 }

@@ -12,9 +12,10 @@ func ExampleClient_messages() {
 	if err != nil {
 		return
 	}
-	_, _ = client.Messages.Create(context.Background(), messages.Request{
+	content, _ := messages.TextContent("Hello")
+	_, _ = client.Messages().Create(context.Background(), messages.Request{
 		Model:     "model",
 		MaxTokens: 32,
-		Messages:  []messages.Message{{Role: "user", Content: messages.TextContent("Hello")}},
+		Messages:  []messages.Message{{Role: "user", Content: content}},
 	})
 }

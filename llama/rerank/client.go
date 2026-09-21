@@ -13,11 +13,11 @@ import (
 type Client struct{ transport *transport.Client }
 
 // New creates a client on shared transport.
-func New(c *transport.Client) *Client { return &Client{c} }
+func New(client *transport.Client) *Client { return &Client{transport: client} }
 
-// Create performs the Create operation.
-func (c *Client) Create(ctx context.Context, in Request) (Response, error) {
-	var o Response
-	err := request.JSON(ctx, c.transport, http.MethodPost, "/rerank", "rerank.create", in, &o)
-	return o, err
+// Create ranks the submitted documents against a query.
+func (client *Client) Create(ctx context.Context, input Request) (Response, error) {
+	var output Response
+	err := request.JSON(ctx, client.transport, http.MethodPost, "/rerank", "rerank.create", input, &output)
+	return output, err
 }

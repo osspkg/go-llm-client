@@ -70,7 +70,7 @@ func TestClient_ConnectSendReceiveAndClose(t *testing.T) {
 		t.Fatalf("new client: %v", err)
 	}
 
-	session, err := client.Realtime.Connect(t.Context(), "gpt-realtime")
+	session, err := client.Realtime().Connect(t.Context(), "gpt-realtime")
 	if err != nil {
 		t.Fatalf("connect: %v", err)
 	}
@@ -111,7 +111,7 @@ func TestSession_ReceiveHonorsCancellation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new client: %v", err)
 	}
-	session, err := client.Realtime.Connect(t.Context(), "gpt-realtime")
+	session, err := client.Realtime().Connect(t.Context(), "gpt-realtime")
 	if err != nil {
 		t.Fatalf("connect: %v", err)
 	}

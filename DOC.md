@@ -51,12 +51,16 @@ error messages.
 ## Anthropic Messages
 
 ```go
-response, err := anthropicClient.Messages.Create(ctx, messages.Request{
+content, err := messages.TextContent("Explain SSE in one sentence.")
+if err != nil {
+	return err
+}
+response, err := anthropicClient.Messages().Create(ctx, messages.Request{
 	Model:     "claude-3-5-sonnet-latest",
 	MaxTokens: 256,
 	Messages: []messages.Message{{
 		Role:    "user",
-		Content: messages.TextContent("Explain SSE in one sentence."),
+		Content: content,
 	}},
 })
 ```
@@ -76,21 +80,22 @@ consume an `io.Reader` through a bounded multipart request.
 
 ## Native llama.cpp
 
-The native client exposes:
+The native client is immutable after construction and exposes domain clients
+through accessors:
 
-- `Completions` for `/completion`, including string, token-array, mixed, and
+- `Completions()` for `/completion`, including string, token-array, mixed, and
   multimodal prompts, sampling settings, cache/slot/LoRA overrides, typed
   timings, stop metadata, and SSE streaming;
-- `Embeddings` for `/embeddings` and the singular `/embedding` alias;
-- `Tokenization` for `/tokenize` and `/detokenize`, including token-piece
+- `Embeddings()` for `/embeddings` and the singular `/embedding` alias;
+- `Tokenization()` for `/tokenize` and `/detokenize`, including token-piece
   string-or-byte unions;
-- `Templates` for `/apply-template`;
-- `Server` for `/health`, `/props`, and `/props` updates;
-- `Slots` for listing and save/restore/erase cache operations;
-- `Lora` for listing and updating adapter scales;
-- `Metrics` for bounded Prometheus text;
-- `Models` for router listing, download, load, unload, and model lifecycle SSE;
-- `Rerank` for the native reranking endpoint.
+- `Templates()` for `/apply-template`;
+- `Server()` for `/health`, `/props`, and `/props` updates;
+- `Slots()` for listing and save/restore/erase cache operations;
+- `LoRA()` for listing and updating adapter scales;
+- `Metrics()` for bounded Prometheus text;
+- `Models()` for router listing, download, load, unload, and model lifecycle SSE;
+- `Rerank()` for the native reranking endpoint.
 
 Native endpoints can be disabled or absent in a particular llama.cpp build.
 The client returns `errors.CapabilityError` for a missing native route; its

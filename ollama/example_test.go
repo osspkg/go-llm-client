@@ -12,5 +12,5 @@ func ExampleNew() {
 	if err != nil {
 		return
 	}
-	_, _ = client.Generate.Create(context.Background(), generate.Request{Model: "llama3"})
+	_, _ = client.Generate().Create(context.Background(), generate.Request{Model: "llama3"})
 }

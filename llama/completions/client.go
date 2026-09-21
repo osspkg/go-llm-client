@@ -14,21 +14,21 @@ import (
 type Client struct{ transport *transport.Client }
 
 // New creates a client on shared transport.
-func New(c *transport.Client) *Client { return &Client{c} }
+func New(client *transport.Client) *Client { return &Client{transport: client} }
 
-// Create performs the Create operation.
-func (c *Client) Create(ctx context.Context, in Request) (Response, error) {
-	var o Response
-	err := request.JSON(ctx, c.transport, http.MethodPost, "/completion", "completion.create", in, &o)
-	return o, err
+// Create sends a native completion request and waits for the complete result.
+func (client *Client) Create(ctx context.Context, input Request) (Response, error) {
+	var output Response
+	err := request.JSON(ctx, client.transport, http.MethodPost, "/completion", "completion.create", input, &output)
+	return output, err
 }
 
-// CreateStream performs the CreateStream operation.
-func (c *Client) CreateStream(ctx context.Context, in Request) (stream.Iterator[Response], error) {
-	in.Stream = true
-	b, err := request.Stream(ctx, c.transport, http.MethodPost, "/completion", "completion.stream", in, "text/event-stream")
+// CreateStream sends a native completion request and returns incremental SSE events.
+func (client *Client) CreateStream(ctx context.Context, input Request) (stream.Iterator[Response], error) {
+	input.Stream = true
+	body, err := request.Stream(ctx, client.transport, http.MethodPost, "/completion", "completion.stream", input, "text/event-stream")
 	if err != nil {
 		return nil, err
 	}
-	return stream.NewSSE(b, request.Decode[Response], 0), nil
+	return stream.NewSSE(body, request.Decode[Response], 0), nil
 }

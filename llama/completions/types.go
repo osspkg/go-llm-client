@@ -4,6 +4,7 @@ package completions
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 )
 
 //go:generate easyjson -all types.go
@@ -12,23 +13,25 @@ import (
 // Use StringPrompt, TokenPrompt, MixedPrompt, or MultimodalPrompt to construct it.
 type Prompt []byte
 
-// StringPrompt creates a text prompt.
-func StringPrompt(value string) Prompt {
+// StringPrompt creates a text prompt and returns any JSON encoding error.
+func StringPrompt(value string) (Prompt, error) {
 	return marshalPrompt(value)
 }
 
-// TokenPrompt creates a prompt from token IDs.
-func TokenPrompt(tokens []int) Prompt {
+// TokenPrompt creates a prompt from token IDs and returns any JSON encoding error.
+func TokenPrompt(tokens []int) (Prompt, error) {
 	return marshalPrompt(tokens)
 }
 
-// MixedPrompt creates a prompt from a provider-defined mixed token/string array.
-func MixedPrompt(values []json.RawMessage) Prompt {
+// MixedPrompt creates a provider-defined mixed token/string prompt and validates
+// its raw JSON values.
+func MixedPrompt(values []json.RawMessage) (Prompt, error) {
 	return marshalPrompt(values)
 }
 
-// MultimodalPrompt creates a prompt object containing text and base64 media payloads.
-func MultimodalPrompt(text string, media []string) Prompt {
+// MultimodalPrompt creates a prompt object containing text and base64 media
+// payloads and returns any JSON encoding error.
+func MultimodalPrompt(text string, media []string) (Prompt, error) {
 	return marshalPrompt(struct {
 		// PromptString is the text containing media marker placeholders.
 		PromptString string `json:"prompt_string"`
@@ -37,12 +40,12 @@ func MultimodalPrompt(text string, media []string) Prompt {
 	}{PromptString: text, MultimodalData: media})
 }
 
-func marshalPrompt(value any) Prompt {
+func marshalPrompt(value any) (Prompt, error) {
 	data, err := json.Marshal(value)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("marshal llama prompt: %w", err)
 	}
-	return Prompt(data)
+	return Prompt(data), nil
 }
 
 // MarshalJSON validates and returns the prompt union unchanged.

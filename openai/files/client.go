@@ -4,7 +4,6 @@ package files
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -41,9 +40,13 @@ func (client *Client) Upload(ctx context.Context, input UploadInput) (File, erro
 	if err != nil {
 		return output, err
 	}
-	data, err := request.Reader(ctx, client.transport, request.Post, "/files", "files.upload", body, contentType)
-	if err != nil {
-		return output, err
+	data, requestErr := request.Reader(ctx, client.transport, request.Post, "/files", "files.upload", body, contentType)
+	bodyErr := body.Close()
+	if requestErr != nil {
+		return output, requestErr
+	}
+	if bodyErr != nil {
+		return output, bodyErr
 	}
 	return request.Decode[File](data)
 }
@@ -67,31 +70,20 @@ func (client *Client) Content(ctx context.Context, id string) ([]byte, error) {
 	return request.Bytes(ctx, client.transport, request.Get, "/files/"+url.PathEscape(id)+"/content", "files.content", nil, "")
 }
 
-func uploadBody(input UploadInput) (io.ReadCloser, string, error) {
+func uploadBody(input UploadInput) (*transport.MultipartBody, string, error) {
 	if input.Filename == "" || input.Purpose == "" || input.File == nil {
 		return nil, "", errors.New("filename, purpose, and file are required")
 	}
-	reader, writer := io.Pipe()
-	multipartWriter := multipart.NewWriter(writer)
-	go func() {
-		err := multipartWriter.WriteField("purpose", input.Purpose)
-		if err == nil {
-			var part io.Writer
-			part, err = multipartWriter.CreateFormFile("file", input.Filename)
-			if err == nil {
-				_, err = io.Copy(part, input.File)
-			}
+	body, contentType := transport.NewMultipartBody(func(multipartWriter *multipart.Writer) error {
+		if err := multipartWriter.WriteField("purpose", input.Purpose); err != nil {
+			return err
 		}
-		if err == nil {
-			err = multipartWriter.Close()
-		}
+		part, err := multipartWriter.CreateFormFile("file", input.Filename)
 		if err != nil {
-			_ = writer.CloseWithError(fmt.Errorf("write file multipart: %w", err))
-			return
+			return err
 		}
-		_ = writer.Close()
-	}()
-	return reader, writerBoundary(multipartWriter), nil
+		_, err = io.Copy(part, input.File)
+		return err
+	})
+	return body, contentType, nil
 }
-
-func writerBoundary(writer *multipart.Writer) string { return writer.FormDataContentType() }

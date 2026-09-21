@@ -12,8 +12,9 @@ func ExampleClient_completions() {
 	if err != nil {
 		return
 	}
-	_, _ = client.Completions.Create(context.Background(), completions.Request{
-		Prompt:   completions.StringPrompt("Hello"),
+	prompt, _ := completions.StringPrompt("Hello")
+	_, _ = client.Completions().Create(context.Background(), completions.Request{
+		Prompt:   prompt,
 		NPredict: 32,
 	})
 }
