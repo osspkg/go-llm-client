@@ -24,6 +24,7 @@ organized by bounded context.
 ## Features
 
 - OpenAI-compatible REST client with custom base URLs and per-request auth.
+- OpenAI Codex device-code login with refreshable bearer sessions.
 - OpenAI domain packages for responses, chat, completions, embeddings, models,
   files, uploads, batches, media, stateful resources, organization APIs, and
   Realtime WebSocket sessions.
@@ -103,6 +104,25 @@ client, err := openai.New(
 	openai.WithBaseURL("http://localhost:8080/v1"),
 	openai.WithAuthProvider(auth.StaticBearer("token")),
 )
+```
+
+For Codex subscription authentication, use the device-code flow. The callback
+shows the short-lived code in the browser or terminal, and the session refreshes
+access tokens when the provider supplies an expiry:
+
+```go
+codexAuth, err := auth.NewCodexDeviceAuth()
+if err != nil {
+	panic(err)
+}
+codexSession, err := codexAuth.Login(ctx, func(code auth.CodexDeviceCode) error {
+	fmt.Printf("Open %s and enter %s\n", code.VerificationURL, code.UserCode)
+	return nil
+})
+if err != nil {
+	panic(err)
+}
+client, err := openai.New(openai.WithAuthProvider(codexSession.HeaderProvider()))
 ```
 
 Anthropic uses `x-api-key` and the required API version by default:

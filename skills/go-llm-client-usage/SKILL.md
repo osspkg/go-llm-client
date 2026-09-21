@@ -33,6 +33,31 @@ each HTTP request and WebSocket handshake, and its `auth.RequestMeta.Domain`
 always contains the destination hostname, including custom base URLs. Never
 put credentials in query parameters, URLs, logs, or returned errors.
 
+## Codex device-code authentication
+
+For Codex subscription access, use `auth.NewCodexDeviceAuth` and connect the
+resulting `CodexSession.HeaderProvider()` to `openai.WithAuthProvider`. The
+auth package performs the device-code flow and in-memory refresh, but it does
+not persist credentials.
+
+When integrating with an application storage or UI layer:
+
+- keep the complete `auth.CodexDeviceCode` on the backend while the flow is
+  pending; do not reconstruct it from the browser-visible URL and code;
+- return only the verification URL, one-time user code, and status/expiry data
+  to a web UI;
+- encrypt `auth.CodexTokens` at rest and load them with `NewSession` on process
+  startup;
+- persist `session.Tokens()` after login and after operations that may refresh
+  the token set;
+- keep access, refresh, and ID tokens out of browser storage, logs, URLs, and
+  diagnostic errors;
+- bind pending flows to the authenticated application subject and expire them.
+
+Read [codex_auth.md](references/codex_auth.md) for the backend storage
+contract, web endpoints, desktop keyring variant, and refresh persistence
+pattern.
+
 Use typed provider request models. Union constructors that can fail return an
 error, for example `messages.TextContent` and
 `completions.StringPrompt`; handle that error before sending the request.
@@ -71,3 +96,5 @@ Read only the reference needed for the task:
   documents, pinned revisions, and authoritative upstream links.
 - [usage_examples.md](references/usage_examples.md) — provider, auth, stream,
   error, upload, and Realtime examples.
+- [codex_auth.md](references/codex_auth.md) — Codex device-code login with
+  application storage, web UI, desktop keyring, and refresh persistence.

@@ -43,6 +43,97 @@ Anthropic defaults to `https://api.anthropic.com/v1` and sends
 `WithBearerToken` for `Authorization: Bearer`. Workspace and beta headers are
 explicit options. `WithAuthProvider` can return custom headers per operation.
 
+Codex subscription login is available through `auth.NewCodexDeviceAuth`. Call
+`Login` with a callback that displays `CodexDeviceCode.VerificationURL` and
+`UserCode`, then pass the returned session's `HeaderProvider()` to
+`openai.WithAuthProvider`. The session refreshes access tokens when their
+expiry is available. The device code and returned tokens are sensitive and
+must not be logged or persisted without protection.
+
+### Codex storage and UI integration
+
+`pkg/auth` deliberately does not persist Codex credentials. An application
+should own the storage boundary and store `auth.CodexTokens` in an encrypted
+database, KMS-backed secret store, or OS keyring. A typical application-level
+interface is:
+
+```go
+type CodexTokenStore interface {
+	Load(context.Context, string) (auth.CodexTokens, error)
+	Save(context.Context, string, auth.CodexTokens) error
+	Delete(context.Context, string) error
+}
+```
+
+The `string` identifies the authenticated application subject, not the Codex
+token. The store must distinguish a missing record from a storage failure and
+must never log token fields.
+
+For a web UI, keep the device-code exchange on the backend:
+
+1. `POST /auth/codex/start` calls `RequestDeviceCode` and stores the complete
+   `auth.CodexDeviceCode` server-side with a short TTL and the current user
+   identity.
+2. Return only `VerificationURL`, `UserCode`, and an expiry/status identifier
+   to the browser. Do not serialize and reconstruct `CodexDeviceCode`: its
+   private device-auth identifier and polling interval are required by
+   `Complete`.
+3. The UI opens the verification URL and displays the one-time code.
+4. `POST /auth/codex/complete` loads the pending code, calls `Complete`, saves
+   `session.Tokens()` in the protected store, and attaches the session to the
+   backend user session.
+5. On a later process start, load the token set and call `NewSession` before
+   creating the OpenAI client:
+
+```go
+tokens, err := tokenStore.Load(ctx, subjectID)
+if err != nil {
+	return err
+}
+
+session, err := codexAuth.NewSession(tokens)
+if err != nil {
+	return err
+}
+
+client, err := openai.New(
+	openai.WithAuthProvider(session.HeaderProvider()),
+)
+if err != nil {
+	return err
+}
+```
+
+The browser receives only an opaque, `HttpOnly`, `Secure`, appropriately
+`SameSite` session cookie. Access tokens, refresh tokens, ID tokens, and the
+pending device code stay on the backend. Protect the start and complete
+endpoints with the application's own authentication, authorization, CSRF
+protection, rate limiting, and subject binding.
+
+`HeaderProvider` refreshes an expiring access token in memory. After a client
+operation, persist `session.Tokens()` again so a rotated refresh token is not
+lost when the process exits:
+
+```go
+if _, err := client.Chat().Create(ctx, request); err != nil {
+	return err
+}
+if err := tokenStore.Save(ctx, subjectID, session.Tokens()); err != nil {
+	return err
+}
+```
+
+Applications that need immediate persistence can wrap the session's
+`HeaderProvider`, compare the current token snapshot with the last stored
+snapshot, and save only after a refresh. The wrapper must preserve the request
+context and must not include credentials in errors or logs.
+
+For a desktop UI, use the same backend-facing flow and store the token set in
+the operating system keyring. The UI process should receive login status and
+display data, not the access or refresh token. On logout, delete the stored
+token set, discard the in-memory session, and invalidate the application
+session.
+
 Native llama.cpp defaults to `http://localhost:8080`; its auth callback is also
 called for every request. `RequestMeta.Domain` always contains the destination
 hostname, including custom base URLs. Credentials are never put in URLs or
