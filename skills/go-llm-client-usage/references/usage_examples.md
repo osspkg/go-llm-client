@@ -144,6 +144,42 @@ client, err := openai.New(openai.WithAuthProvider(func(ctx context.Context, meta
 The callback is called for every request. Do not cache a mutable `http.Header`
 map and do not put the selected token into a URL.
 
+## Codex device-code auth
+
+For Codex subscription authentication, keep the device-code state and token
+storage in the application backend. The short-lived code can be displayed by a
+web or desktop UI, while the resulting credentials stay in protected storage:
+
+```go
+codexAuth, err := auth.NewCodexDeviceAuth()
+if err != nil {
+	return err
+}
+
+deviceCode, err := codexAuth.RequestDeviceCode(ctx)
+if err != nil {
+	return err
+}
+// Store the complete deviceCode server-side. Return only its URL and user code
+// to the UI; do not reconstruct it from those display fields.
+
+session, err := codexAuth.Complete(ctx, deviceCode)
+if err != nil {
+	return err
+}
+if err := tokenStore.Save(ctx, subjectID, session.Tokens()); err != nil {
+	return err
+}
+
+client, err := openai.New(openai.WithAuthProvider(session.HeaderProvider()))
+if err != nil {
+	return err
+}
+```
+
+For the storage contract, web endpoint flow, refresh persistence, and desktop
+keyring guidance, read [codex_auth.md](codex_auth.md).
+
 ## OpenAI Realtime WebSocket
 
 ```go
